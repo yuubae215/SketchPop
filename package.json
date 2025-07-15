@@ -1,0 +1,26 @@
+{
+  "name": "sketchpop",
+  "version": "1.0.0",
+  "description": "直感的な操作で2Dスケッチから3Dモデルを作成できるWebベースの3Dモデリングアプリケーション。Three.jsを使用して実装されています。",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "dev": "webpack serve",
+    "start": "webpack serve --open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.100.2",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
+  },
+  "dependencies": {
+    "three": "^0.178.0"
+  }
+}

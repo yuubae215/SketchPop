@@ -1,0 +1,336 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    overflow: hidden;
+}
+
+#container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: #2a2a2a;
+    padding: 12px 20px;
+    border-bottom: 1px solid #404040;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+#main-layout {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+#left-sidebar {
+    width: 280px;
+    background: #2a2a2a;
+    border-right: 1px solid #404040;
+    display: flex;
+    flex-direction: column;
+}
+
+#canvas-container {
+    flex: 1;
+    background: #2a2a2a;
+    cursor: crosshair;
+    position: relative;
+    min-width: 0;
+}
+
+
+/* Left Sidebar Styles */
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #404040;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #ffffff;
+}
+
+#object-count {
+    background: #404040;
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    min-width: 20px;
+    text-align: center;
+}
+
+#object-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.object-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.object-item:hover {
+    background-color: #353535;
+}
+
+.object-item.selected {
+    background-color: #404040;
+    border-left-color: #007acc;
+}
+
+.object-item.sketch {
+    border-left-color: #ff9500;
+}
+
+.object-item.extruded {
+    border-left-color: #4a90e2;
+}
+
+.object-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    fill: currentColor;
+}
+
+.object-name {
+    flex: 1;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+.object-type {
+    font-size: 11px;
+    color: #999999;
+    text-transform: uppercase;
+}
+
+.object-children {
+    margin-left: 20px;
+}
+
+.object-item.child {
+    padding-left: 40px;
+    font-size: 13px;
+}
+
+.object-item.child .object-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* Selection Mode Toggle Card Styles */
+#selection-toggle {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 88px;
+    height: 44px;
+    background: rgba(42, 42, 42, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    padding: 4px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    display: flex;
+    gap: 4px;
+}
+
+.selection-btn {
+    width: 36px;
+    height: 36px;
+    background: #404040;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.selection-btn:hover {
+    background: #555555;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.selection-btn.active {
+    background: #007acc;
+    color: #ffffff;
+}
+
+.selection-btn.active:hover {
+    background: #0066aa;
+}
+
+.selection-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+}
+
+/* Projection Toggle Card Styles */
+#projection-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 120px;
+    height: 56px;
+    background: rgba(42, 42, 42, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    padding: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    display: flex;
+    gap: 4px;
+}
+
+.projection-btn {
+    flex: 1;
+    height: 40px;
+    background: #404040;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    position: relative;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.projection-btn:hover {
+    background: #555555;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.projection-btn.active {
+    background: #ff6b35;
+    color: #ffffff;
+}
+
+.projection-btn.active:hover {
+    background: #e55a2b;
+}
+
+.projection-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    margin-bottom: 2px;
+}
+
+.projection-btn span {
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* Right Side Bar Styles */
+#right-sidebar {
+    position: absolute;
+    top: 80px;
+    right: 10px;
+    width: 60px;
+    background: rgba(42, 42, 42, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    padding: 10px 5px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+}
+
+.sidebar-icon {
+    width: 50px;
+    height: 50px;
+    background: #404040;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.sidebar-icon:last-child {
+    margin-bottom: 0;
+}
+
+.sidebar-icon:hover {
+    background: #555555;
+    transform: translateX(-2px);
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+}
+
+.sidebar-icon.active {
+    background: #ff6b35;
+    color: #ffffff;
+}
+
+.sidebar-icon.active:hover {
+    background: #e55a2b;
+}
+
+.sidebar-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+.sidebar-tooltip {
+    position: absolute;
+    right: 65px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333333;
+    color: #ffffff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.sidebar-icon:hover .sidebar-tooltip {
+    opacity: 1;
+}
