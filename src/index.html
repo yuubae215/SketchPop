@@ -56,6 +56,13 @@
                     </button>
                 </div>
 
+                <!-- Home Button -->
+                <button id="home-btn" class="home-btn" title="Fit All Objects (F)">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/>
+                    </svg>
+                </button>
+
                 <!-- Operation Icons Card -->
                 <div id="right-sidebar">
                     <button id="sidebar-sketch" class="sidebar-icon active" title="Sketch Mode">
@@ -102,6 +109,37 @@
                     <button id="confirmShape" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; margin-right: 10px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">✓ 確定</button>
                     <button id="cancelShape" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">✗ キャンセル</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div id="status-bar">
+            <div class="status-section">
+                <span class="status-label">座標:</span>
+                <span id="cursor-coords">X: 0.0, Y: 0.0, Z: 0.0</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">モード:</span>
+                <span id="current-mode">スケッチ</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">カメラ:</span>
+                <span id="camera-type">透視投影</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">オブジェクト:</span>
+                <span id="object-stats">0 個</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">選択:</span>
+                <span id="selection-info">なし</span>
+            </div>
+            <div class="status-section status-hint">
+                <span id="operation-hint">クリックしてスケッチを開始</span>
             </div>
         </div>
     </div>

@@ -81,32 +81,41 @@ export class StateManager {
         this.transformManager = transformManager;
     }
 
+    setStatusBarManager(statusBarManager) {
+        this.statusBarManager = statusBarManager;
+    }
+
     setMode(mode) {
         // Use pure function to validate and calculate mode change
         if (!validateMode(mode)) {
             return false;
         }
-        
+
         const modeChange = calculateNextMode(this.currentMode, mode);
         if (!modeChange) {
             return false;
         }
-        
+
         // Update mode and flags using pure function
         const modeFlags = calculateModeFlags(mode);
         this.currentMode = mode;
         this.isSketchMode = modeFlags.isSketchMode;
-        
+
         // Clear operations if needed
         if (shouldClearActiveOperations(modeChange.previousMode, modeChange.newMode)) {
             this.clearActiveOperations();
         }
-        
+
         // Update UI and trigger side effects
         this.updateModeButtons();
         this.stateHandler.updateSidebarIcons(window.interactionManager);
         this.stateHandler.handleModeChange(mode);
-        
+
+        // Update status bar
+        if (this.statusBarManager) {
+            this.statusBarManager.updateMode(mode);
+        }
+
         return true;
     }
 
@@ -232,8 +241,10 @@ export class StateManager {
     }
 
     updateShapeCount() {
-        // Shape count display has been removed with the controls card
-        // This method is kept for backward compatibility but does nothing
+        // Update status bar with current object count
+        if (this.statusBarManager) {
+            this.statusBarManager.updateObjectCount(this.sketches.length);
+        }
     }
 
     showConfirmationControls() {

@@ -3,6 +3,7 @@ import { ExtrusionManager } from './ExtrusionManager.js';
 import { SketchRectangle } from './SketchRectangle.js';
 import { SelectionManager } from './SelectionManager.js';
 import { TransformManager } from './TransformManager.js';
+import { StatusBarManager } from './StatusBarManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -11,15 +12,20 @@ export class InteractionManager {
         this.extrusionManager = new ExtrusionManager(sceneManager, stateManager);
         this.selectionManager = new SelectionManager(sceneManager, stateManager);
         this.transformManager = new TransformManager(sceneManager, stateManager);
+        this.statusBarManager = new StatusBarManager();
         this.mouse = new THREE.Vector2();
         this.sketchExtrusionDimensions = [];
-        
+
         // Set managers in state manager
         this.stateManager.setSelectionManager(this.selectionManager);
         this.stateManager.setTransformManager(this.transformManager);
-        
+        this.stateManager.setStatusBarManager(this.statusBarManager);
+
         this.setupEventListeners();
         this.setupControls();
+
+        // Initialize status bar
+        this.statusBarManager.updateMode('sketch');
     }
 
     setupEventListeners() {
@@ -49,6 +55,21 @@ export class InteractionManager {
             this.updateSidebarIcons();
         });
 
+        // Projection toggle controls
+        document.getElementById('perspective-btn').addEventListener('click', () => {
+            if (this.sceneManager.isPerspective) return;
+            this.statusBarManager.updateCameraType('perspective');
+        });
+
+        document.getElementById('orthographic-btn').addEventListener('click', () => {
+            if (!this.sceneManager.isPerspective) return;
+            this.statusBarManager.updateCameraType('orthographic');
+        });
+
+        // Home button - Fit all objects
+        document.getElementById('home-btn').addEventListener('click', () => {
+            this.sceneManager.fitAllObjects();
+        });
 
         document.getElementById('sidebar-clear').addEventListener('click', () => {
             this.stateManager.clearAll(this.sceneManager);
@@ -206,7 +227,12 @@ export class InteractionManager {
 
     onMouseMove(event) {
         const intersection = this.sceneManager.getMouseIntersection(event);
-        
+
+        // Update cursor coordinates in status bar
+        if (intersection) {
+            this.statusBarManager.updateCursorPosition(intersection.x, intersection.y, intersection.z);
+        }
+
         if (this.stateManager.isDrawing && this.stateManager.currentSketch) {
             event.preventDefault();
             const mesh = this.stateManager.currentSketch.update(intersection);
@@ -269,6 +295,10 @@ export class InteractionManager {
                 this.stateManager.setMode('select');
                 this.updateSidebarIcons();
                 break;
+            case 'f':
+                // Fit all objects to view
+                this.sceneManager.fitAllObjects();
+                break;
             case 'escape':
                 if (this.stateManager.pendingExtrusion || this.stateManager.currentFaceExtrusion) {
                     this.cancelExtrusion();
@@ -281,7 +311,7 @@ export class InteractionManager {
                 this.handleDeleteSelected();
                 break;
         }
-        
+
         // Handle transform controls keyboard shortcuts if transform controls are active
         if (this.transformManager.isTransformActive()) {
             this.transformManager.handleKeyboardShortcut(event.key);

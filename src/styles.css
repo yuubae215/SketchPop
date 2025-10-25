@@ -257,10 +257,45 @@ header h1 {
     font-weight: 600;
 }
 
+/* Home Button Styles */
+.home-btn {
+    position: absolute;
+    top: 76px;
+    right: 10px;
+    width: 56px;
+    height: 56px;
+    background: rgba(42, 42, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+}
+
+.home-btn:hover {
+    background: rgba(74, 144, 226, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+}
+
+.home-btn:active {
+    transform: translateY(0);
+}
+
+.home-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
 /* Right Side Bar Styles */
 #right-sidebar {
     position: absolute;
-    top: 80px;
+    top: 142px;
     right: 10px;
     width: 60px;
     background: rgba(42, 42, 42, 0.95);
@@ -333,4 +368,63 @@ header h1 {
 
 .sidebar-icon:hover .sidebar-tooltip {
     opacity: 1;
+}
+
+/* Status Bar Styles */
+#status-bar {
+    height: 32px;
+    background: #1e1e1e;
+    border-top: 1px solid #404040;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    gap: 15px;
+    font-size: 12px;
+    color: #cccccc;
+    user-select: none;
+}
+
+.status-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-section.status-hint {
+    margin-left: auto;
+    color: #999999;
+    font-style: italic;
+}
+
+.status-label {
+    color: #999999;
+    font-weight: 500;
+}
+
+.status-divider {
+    width: 1px;
+    height: 16px;
+    background: #404040;
+}
+
+#cursor-coords {
+    font-family: 'Courier New', monospace;
+    color: #4ec9b0;
+}
+
+#current-mode {
+    color: #ff6b35;
+    font-weight: 500;
+}
+
+#camera-type {
+    color: #569cd6;
+}
+
+#object-stats {
+    color: #dcdcaa;
+}
+
+#selection-info {
+    color: #ce9178;
 }
