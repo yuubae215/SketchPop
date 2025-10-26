@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SceneHandler, RenderHandler, InteractionHandler } from './handlers/threeHandlers.js';
 import { AxisTriad } from './AxisTriad.js';
+import { ViewCube } from './ViewCube.js';
 
 export class SceneManager {
     constructor() {
@@ -15,6 +16,7 @@ export class SceneManager {
         this.sketchPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         this.isPerspective = true;
         this.axisTriad = null;
+        this.viewCube = null;
 
         // Initialize handlers
         this.sceneHandler = new SceneHandler();
@@ -31,8 +33,9 @@ export class SceneManager {
         this.createGroundPlane();
         this.setupEventListeners();
 
-        // Create axis triad after camera is initialized
+        // Create axis triad and view cube after camera is initialized
         this.axisTriad = new AxisTriad(this.camera);
+        this.viewCube = new ViewCube(this.camera, this.controls);
 
         return {
             scene: this.scene,
@@ -46,7 +49,46 @@ export class SceneManager {
 
     createScene() {
         this.scene = this.sceneHandler.initializeScene();
-        this.scene.background = new THREE.Color(0x1e1e1e);
+
+        // Create gradient background using shader
+        const vertexShader = `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+
+        const fragmentShader = `
+            varying vec2 vUv;
+            uniform vec3 colorTop;
+            uniform vec3 colorBottom;
+            void main() {
+                gl_FragColor = vec4(mix(colorBottom, colorTop, vUv.y), 1.0);
+            }
+        `;
+
+        const uniforms = {
+            colorTop: { value: new THREE.Color(0x2a2a35) },    // Dark blue-gray
+            colorBottom: { value: new THREE.Color(0x1a1a1e) }  // Very dark gray
+        };
+
+        const gradientGeometry = new THREE.PlaneGeometry(2, 2);
+        const gradientMaterial = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            depthWrite: false,
+            depthTest: false
+        });
+
+        const gradientMesh = new THREE.Mesh(gradientGeometry, gradientMaterial);
+        gradientMesh.name = 'background-gradient';
+
+        // Create a separate scene for the background
+        this.backgroundScene = new THREE.Scene();
+        this.backgroundCamera = new THREE.Camera();
+        this.backgroundScene.add(gradientMesh);
     }
 
     createCamera() {
@@ -180,6 +222,11 @@ export class SceneManager {
             this.axisTriad.camera = this.camera;
         }
 
+        // Update view cube camera reference
+        if (this.viewCube) {
+            this.viewCube.mainCamera = this.camera;
+        }
+
         // Update UI buttons
         this.updateProjectionButtons();
 
@@ -219,12 +266,28 @@ export class SceneManager {
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         this.controls.update();
+
+        // Render background gradient first
+        if (this.backgroundScene && this.backgroundCamera) {
+            this.renderer.autoClear = false;
+            this.renderer.clear();
+            this.renderer.render(this.backgroundScene, this.backgroundCamera);
+        }
+
+        // Render main scene
         this.renderHandler.render(this.scene, this.camera);
     }
 
     // Manual render method for external components
     render() {
         if (this.renderHandler && this.scene && this.camera) {
+            // Render background gradient first
+            if (this.backgroundScene && this.backgroundCamera) {
+                this.renderer.autoClear = false;
+                this.renderer.clear();
+                this.renderer.render(this.backgroundScene, this.backgroundCamera);
+            }
+
             this.renderHandler.render(this.scene, this.camera);
         }
     }

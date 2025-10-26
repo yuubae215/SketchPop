@@ -71,6 +71,22 @@ export class InteractionManager {
             this.sceneManager.fitAllObjects();
         });
 
+        // Keyboard shortcuts overlay
+        const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+        const closeShortcutsBtn = document.getElementById('close-shortcuts');
+
+        // Close shortcuts overlay on button click
+        closeShortcutsBtn.addEventListener('click', () => {
+            shortcutsOverlay.style.display = 'none';
+        });
+
+        // Close on overlay background click
+        shortcutsOverlay.addEventListener('click', (e) => {
+            if (e.target === shortcutsOverlay) {
+                shortcutsOverlay.style.display = 'none';
+            }
+        });
+
         document.getElementById('sidebar-clear').addEventListener('click', () => {
             this.stateManager.clearAll(this.sceneManager);
             this.stateManager.hideConfirmationControls();
@@ -279,6 +295,23 @@ export class InteractionManager {
     }
 
     onKeyDown(event) {
+        // Toggle keyboard shortcuts help with '?'
+        if (event.key === '?' || (event.shiftKey && event.key === '/')) {
+            event.preventDefault();
+            const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+            const isVisible = shortcutsOverlay.style.display !== 'none';
+            shortcutsOverlay.style.display = isVisible ? 'none' : 'flex';
+            return;
+        }
+
+        // Close shortcuts overlay on Escape
+        const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+        if (event.key === 'Escape' && shortcutsOverlay.style.display === 'flex') {
+            event.preventDefault();
+            shortcutsOverlay.style.display = 'none';
+            return;
+        }
+
         // Mode switching shortcuts
         switch (event.key.toLowerCase()) {
             case 's':
