@@ -2,6 +2,8 @@
 
 A web-based 3D modeling application that creates 3D models from 2D sketches using an intuitive sketch-and-extrude workflow. Built with Three.js and Vite.
 
+**Live Demo:** https://yuubae215.github.io/SketchPop/
+
 ## Overview
 
 SketchPop lets you start with simple 2D rectangle sketches on a ground plane and extrude them into 3D shapes — bringing the core sketch-and-extrude experience of CAD software to the browser.

@@ -4,72 +4,72 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SketchPop は、ブラウザ上で動作するWebベースの3Dモデリングアプリケーションです。Three.js を使用し、2Dスケッチから3D形状を押し出して作成する「スケッチ＆押し出し」ワークフローを実装しています。Vite をビルドツールとして採用したモジュラー設計です。
+SketchPop is a web-based 3D modeling application that runs in the browser. It implements a sketch-and-extrude workflow using Three.js, allowing users to draw 2D rectangles on a ground plane and extrude them into 3D solids. The project uses Vite as the build tool and follows a modular ES6 architecture.
+
+**Live site:** https://yuubae215.github.io/SketchPop/
 
 ## Architecture
 
-**コアマネージャー:**
-- `SceneManager`: Three.js シーン・カメラ・レンダラー・ライティングの管理
-- `StateManager`: アプリケーション全体の状態管理（モード切り替え・スケッチコレクション）
-- `InteractionManager`: マウス・キーボードイベントの統合処理
-- `ExtrusionManager`: 押し出し操作・面検出（Raycasting）・面ハイライト
-- `SelectionManager`: オブジェクトの選択・選択解除・視覚フィードバック
-- `ObjectListManager`: サイドバーのオブジェクトリスト管理
-- `TransformManager`: 移動・回転・スケール変形とハンドル表示
-- `StatusBarManager`: ステータスバーの表示管理
+**Core Managers:**
+- `SceneManager`: Three.js scene, camera, renderer, and lighting setup
+- `StateManager`: Application-wide state and mode switching (sketch / extrude)
+- `InteractionManager`: Unified mouse and keyboard event handling
+- `ExtrusionManager`: Extrusion logic, face detection via Raycasting, face highlighting
+- `SelectionManager`: Object selection/deselection and visual feedback
+- `ObjectListManager`: Sidebar object list management
+- `TransformManager`: Move / rotate / scale with visual handles
+- `StatusBarManager`: Status bar display
 
-**ジオメトリ関連:**
-- `SketchRectangle`: 地平面上の矩形スケッチ・押し出し処理
-- `CustomExtruder`: 独立頂点による手動ジオメトリ生成（面単位の法線・色）
-- `Box`: 確定済み立方体メッシュの管理
-- `Rectangle`: 矩形の基本クラス
+**Geometry:**
+- `SketchRectangle`: Rectangle sketch on the ground plane and extrusion into 3D
+- `CustomExtruder`: Manual geometry generation with per-face independent vertices, normals, and colors
+- `Box`: Confirmed solid mesh management
+- `Rectangle`: Base rectangle class
 
-**UI補助:**
-- `ViewCube`: 3D視点ナビゲーションキューブ
-- `AxisTriad`: 軸トライアッド（X/Y/Z 表示）
+**UI Helpers:**
+- `ViewCube`: 3D navigation cube for camera orientation
+- `AxisTriad`: X/Y/Z axis indicator
 
-**handlers/ ディレクトリ:** 機能別に分離されたイベントハンドラー群
-**utils/ ディレクトリ:** 再利用可能なユーティリティ関数群
+**handlers/ directory:** Event handlers separated by feature domain
+**utils/ directory:** Reusable utility functions
 
 ## Development
 
-**セットアップと起動:**
+**Setup and running:**
 ```bash
-# 依存関係のインストール
+# Install dependencies
 npm install
-# または
+# or
 pnpm install
 
-# 開発サーバーの起動（ホットリロード対応）
+# Start dev server (with hot reload)
 npm run dev
-# または
-pnpm dev
 
-# ブラウザで開く
+# Open in browser
 open http://localhost:5173/SketchPop/
 ```
 
-**ビルド:**
+**Build:**
 ```bash
-npm run build   # dist/ に出力
-npm run preview # ビルド済みをプレビュー
+npm run build    # Output to dist/
+npm run preview  # Preview the built output
 ```
 
-**技術スタック:**
-- Three.js v0.178+ (npm パッケージ)
-- Vite v6+ (ビルド・開発サーバー)
-- ES6 モジュール構成
-- ルートは `src/`、ビルド出力は `dist/`
+**Tech stack:**
+- Three.js v0.178+ (npm package)
+- Vite v6+ (build tool and dev server)
+- ES6 modules
+- Vite root: `src/`, build output: `dist/`
 
-**コード構造:**
-- エントリーポイント: `src/index.js`
-- 設定: `vite.config.js` (base: `/SketchPop/`, root: `src`)
-- 全ソースは `src/` 配下のモジュールに分割
+**Code structure:**
+- Entry point: `src/index.js`
+- Config: `vite.config.js` (base: `/SketchPop/`, root: `src`)
+- All source files are ES6 modules under `src/`
 
-**主要クラスとメソッド:**
-- `CustomExtruder.generateVertices()`: 24独立頂点（6面 × 4頂点）を生成
-- `CustomExtruder.generateIndices()`: 正しいワインディング順でのトライアングル接続
-- `CustomExtruder.generateNormals()`: トライアングル法線からの頂点法線計算
-- `CustomExtruder.generateVertexColors()`: 面ごとの色割り当て
-- `ExtrusionManager`: Raycasting による面検出と押し出し処理
-- `StateManager`: スケッチ/押し出しモードの状態管理
+**Key classes and methods:**
+- `CustomExtruder.generateVertices()`: Creates 24 independent vertices (6 faces × 4 vertices)
+- `CustomExtruder.generateIndices()`: Triangle connectivity with correct winding order
+- `CustomExtruder.generateNormals()`: Vertex normals derived from triangle normals
+- `CustomExtruder.generateVertexColors()`: Per-face color assignment
+- `ExtrusionManager`: Face detection via Raycasting and extrusion handling
+- `StateManager`: Sketch/extrude mode state management
