@@ -3,6 +3,7 @@ import { ExtrusionManager } from './ExtrusionManager.js';
 import { SketchRectangle } from './SketchRectangle.js';
 import { SelectionManager } from './SelectionManager.js';
 import { TransformManager } from './TransformManager.js';
+import { StatusBarManager } from './StatusBarManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -11,15 +12,20 @@ export class InteractionManager {
         this.extrusionManager = new ExtrusionManager(sceneManager, stateManager);
         this.selectionManager = new SelectionManager(sceneManager, stateManager);
         this.transformManager = new TransformManager(sceneManager, stateManager);
+        this.statusBarManager = new StatusBarManager();
         this.mouse = new THREE.Vector2();
         this.sketchExtrusionDimensions = [];
-        
+
         // Set managers in state manager
         this.stateManager.setSelectionManager(this.selectionManager);
         this.stateManager.setTransformManager(this.transformManager);
-        
+        this.stateManager.setStatusBarManager(this.statusBarManager);
+
         this.setupEventListeners();
         this.setupControls();
+
+        // Initialize status bar
+        this.statusBarManager.updateMode('sketch');
     }
 
     setupEventListeners() {
@@ -49,25 +55,45 @@ export class InteractionManager {
             this.updateSidebarIcons();
         });
 
+        // Projection toggle controls
+        document.getElementById('perspective-btn').addEventListener('click', () => {
+            if (this.sceneManager.isPerspective) return;
+            this.statusBarManager.updateCameraType('perspective');
+        });
+
+        document.getElementById('orthographic-btn').addEventListener('click', () => {
+            if (!this.sceneManager.isPerspective) return;
+            this.statusBarManager.updateCameraType('orthographic');
+        });
+
+        // Home button - Fit all objects
+        document.getElementById('home-btn').addEventListener('click', () => {
+            this.sceneManager.fitAllObjects();
+        });
+
+        // Keyboard shortcuts overlay
+        const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+        const closeShortcutsBtn = document.getElementById('close-shortcuts');
+
+        // Close shortcuts overlay on button click
+        closeShortcutsBtn.addEventListener('click', () => {
+            shortcutsOverlay.style.display = 'none';
+        });
+
+        // Close on overlay background click
+        shortcutsOverlay.addEventListener('click', (e) => {
+            if (e.target === shortcutsOverlay) {
+                shortcutsOverlay.style.display = 'none';
+            }
+        });
 
         document.getElementById('sidebar-clear').addEventListener('click', () => {
             this.stateManager.clearAll(this.sceneManager);
-            this.stateManager.hideConfirmationControls();
-            console.log('All shapes and states cleared from sidebar');
         });
 
         document.getElementById('sidebar-dimensions').addEventListener('click', () => {
             this.stateManager.toggleDimensions();
             this.updateSidebarIcons();
-        });
-
-        // Confirmation controls
-        document.getElementById('confirmShape').addEventListener('click', () => {
-            this.confirmExtrusion();
-        });
-
-        document.getElementById('cancelShape').addEventListener('click', () => {
-            this.cancelExtrusion();
         });
         
         // Initialize sidebar icons
@@ -154,59 +180,58 @@ export class InteractionManager {
             this.stateManager.currentSketch.setStateManager(this.stateManager);
             const mesh = this.stateManager.currentSketch.createMesh();
             this.sceneManager.addToScene(mesh);
-            console.log('Started sketching at:', intersection);
         } else {
-            this.stateManager.finishDrawing();
+            const completedSketch = this.stateManager.currentSketch;
+            const success = this.stateManager.finishDrawing();
+            if (success && completedSketch) {
+                // Auto-transition: switch to extrude mode and start extruding immediately
+                this.stateManager.setMode('extrude');
+                this.updateSidebarIcons();
+                this.stateManager.startExtrusion(completedSketch, intersection);
+            }
         }
     }
 
     handleExtrudeClick(intersection, event) {
-        console.log('Click in extrude mode. hoveredFace:', this.stateManager.hoveredFace, 'pendingExtrusion:', this.stateManager.pendingExtrusion);
-        
-        // Check if there's already a pending extrusion (orange shape)
-        const hasPendingExtrusion = this.stateManager.pendingExtrusion || 
-                                   (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending);
-        
-        if (hasPendingExtrusion) {
-            console.log('Cannot start new extrusion - there is already a pending extrusion that needs to be confirmed or cancelled');
-            return;
-        }
-        
         // Priority: Face extrusion over sketch extrusion
         if (this.stateManager.hoveredFace && !this.stateManager.isExtruding && !this.stateManager.isFaceExtruding) {
             this.stateManager.startFaceExtrusion(this.stateManager.hoveredFace, intersection);
-            console.log('Started face extrusion on face with normal:', this.stateManager.hoveredFace.face.normal);
-        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion && !this.stateManager.currentFaceExtrusion.isPending) {
-            this.stateManager.finishFaceExtrusion();
+        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
+            // Direct confirm face extrusion on click
+            if (Math.abs(this.stateManager.currentFaceExtrusion.extrudeDistance) > 0.1) {
+                this.extrusionManager.confirmFaceExtrusion();
+            } else {
+                this.extrusionManager.cancelFaceExtrusion();
+            }
+            this.clearSketchExtrusionDimensions();
         } else {
-            // Fall back to regular sketch extrusion
             this.handleRegularExtrudeClick(intersection);
         }
     }
 
     handleRegularExtrudeClick(intersection) {
-        // Check if there's already a pending extrusion (orange shape)
-        const hasPendingExtrusion = this.stateManager.pendingExtrusion || 
-                                   (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending);
-        
         if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            // Direct confirm on click
             this.stateManager.finishExtrusion();
-        } else if (!hasPendingExtrusion) {
+            this.clearSketchExtrusionDimensions();
+        } else {
             for (let sketch of this.stateManager.sketches) {
                 if (!sketch.isExtruded && sketch.containsPoint(intersection)) {
                     this.stateManager.startExtrusion(sketch, intersection);
-                    console.log('Started extruding sketch:', sketch);
                     break;
                 }
             }
-        } else {
-            console.log('Cannot start new extrusion - there is already a pending extrusion that needs to be confirmed or cancelled');
         }
     }
 
     onMouseMove(event) {
         const intersection = this.sceneManager.getMouseIntersection(event);
-        
+
+        // Update cursor coordinates in status bar
+        if (intersection) {
+            this.statusBarManager.updateCursorPosition(intersection.x, intersection.y, intersection.z);
+        }
+
         if (this.stateManager.isDrawing && this.stateManager.currentSketch) {
             event.preventDefault();
             const mesh = this.stateManager.currentSketch.update(intersection);
@@ -247,12 +272,38 @@ export class InteractionManager {
 
     onRightClick(event) {
         event.preventDefault();
-        if (this.stateManager.pendingExtrusion || (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending)) {
-            this.confirmExtrusion();
+        // Right-click also confirms active extrusion
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            this.stateManager.finishExtrusion();
+            this.clearSketchExtrusionDimensions();
+        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
+            if (Math.abs(this.stateManager.currentFaceExtrusion.extrudeDistance) > 0.1) {
+                this.extrusionManager.confirmFaceExtrusion();
+            } else {
+                this.extrusionManager.cancelFaceExtrusion();
+            }
+            this.clearSketchExtrusionDimensions();
         }
     }
 
     onKeyDown(event) {
+        // Toggle keyboard shortcuts help with '?'
+        if (event.key === '?' || (event.shiftKey && event.key === '/')) {
+            event.preventDefault();
+            const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+            const isVisible = shortcutsOverlay.style.display !== 'none';
+            shortcutsOverlay.style.display = isVisible ? 'none' : 'flex';
+            return;
+        }
+
+        // Close shortcuts overlay on Escape
+        const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+        if (event.key === 'Escape' && shortcutsOverlay.style.display === 'flex') {
+            event.preventDefault();
+            shortcutsOverlay.style.display = 'none';
+            return;
+        }
+
         // Mode switching shortcuts
         switch (event.key.toLowerCase()) {
             case 's':
@@ -269,11 +320,14 @@ export class InteractionManager {
                 this.stateManager.setMode('select');
                 this.updateSidebarIcons();
                 break;
+            case 'f':
+                // Fit all objects to view
+                this.sceneManager.fitAllObjects();
+                break;
             case 'escape':
-                if (this.stateManager.pendingExtrusion || this.stateManager.currentFaceExtrusion) {
+                if (this.stateManager.isExtruding || this.stateManager.isFaceExtruding) {
                     this.cancelExtrusion();
                 } else {
-                    // Detach transform controls on escape
                     this.transformManager.detachFromObject();
                 }
                 break;
@@ -281,7 +335,7 @@ export class InteractionManager {
                 this.handleDeleteSelected();
                 break;
         }
-        
+
         // Handle transform controls keyboard shortcuts if transform controls are active
         if (this.transformManager.isTransformActive()) {
             this.transformManager.handleKeyboardShortcut(event.key);
@@ -289,36 +343,23 @@ export class InteractionManager {
     }
 
     confirmExtrusion() {
-        if (this.stateManager.pendingExtrusion) {
-            this.stateManager.pendingExtrusion.confirmExtrusion();
-            this.stateManager.pendingExtrusion = null;
-            this.stateManager.selectedSketch = null;
-            this.stateManager.isExtruding = false;
-            this.stateManager.extrudeStartPos = null;
-            this.stateManager.hideConfirmationControls();
-            console.log('Shape confirmed via right-click');
-        } else if (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending) {
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            this.stateManager.finishExtrusion();
+        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
             this.extrusionManager.confirmFaceExtrusion();
         }
-        
-        // Clear sketch extrusion dimensions
         this.clearSketchExtrusionDimensions();
     }
 
     cancelExtrusion() {
-        if (this.stateManager.pendingExtrusion) {
-            this.stateManager.pendingExtrusion.cancelExtrusion();
-            this.stateManager.pendingExtrusion = null;
-            this.stateManager.selectedSketch = null;
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            this.stateManager.selectedSketch.cancelExtrusion();
             this.stateManager.isExtruding = false;
+            this.stateManager.selectedSketch = null;
             this.stateManager.extrudeStartPos = null;
-            this.stateManager.hideConfirmationControls();
-            console.log('Shape cancelled via ESC');
-        } else if (this.stateManager.currentFaceExtrusion) {
+        } else if (this.stateManager.isFaceExtruding) {
             this.extrusionManager.cancelFaceExtrusion();
         }
-        
-        // Clear sketch extrusion dimensions
         this.clearSketchExtrusionDimensions();
     }
 

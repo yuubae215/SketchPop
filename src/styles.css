@@ -257,10 +257,45 @@ header h1 {
     font-weight: 600;
 }
 
+/* Home Button Styles */
+.home-btn {
+    position: absolute;
+    top: 76px;
+    right: 10px;
+    width: 56px;
+    height: 56px;
+    background: rgba(42, 42, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+}
+
+.home-btn:hover {
+    background: rgba(74, 144, 226, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+}
+
+.home-btn:active {
+    transform: translateY(0);
+}
+
+.home-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
 /* Right Side Bar Styles */
 #right-sidebar {
     position: absolute;
-    top: 80px;
+    top: 142px;
     right: 10px;
     width: 60px;
     background: rgba(42, 42, 42, 0.95);
@@ -333,4 +368,209 @@ header h1 {
 
 .sidebar-icon:hover .sidebar-tooltip {
     opacity: 1;
+}
+
+/* Status Bar Styles */
+#status-bar {
+    height: 32px;
+    background: #1e1e1e;
+    border-top: 1px solid #404040;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    gap: 15px;
+    font-size: 12px;
+    color: #cccccc;
+    user-select: none;
+}
+
+.status-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-section.status-hint {
+    margin-left: auto;
+    color: #999999;
+    font-style: italic;
+}
+
+.status-label {
+    color: #999999;
+    font-weight: 500;
+}
+
+.status-divider {
+    width: 1px;
+    height: 16px;
+    background: #404040;
+}
+
+#cursor-coords {
+    font-family: 'Courier New', monospace;
+    color: #4ec9b0;
+}
+
+#current-mode {
+    color: #ff6b35;
+    font-weight: 500;
+}
+
+#camera-type {
+    color: #569cd6;
+}
+
+#object-stats {
+    color: #dcdcaa;
+}
+
+#selection-info {
+    color: #ce9178;
+}
+
+/* Keyboard Shortcuts Overlay Styles */
+#shortcuts-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.shortcuts-panel {
+    background: #2a2a2a;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    max-width: 900px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #404040;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.shortcuts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-bottom: 1px solid #404040;
+    background: #1e1e1e;
+    border-radius: 12px 12px 0 0;
+}
+
+.shortcuts-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: #999999;
+    font-size: 32px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    background: #404040;
+    color: #ffffff;
+}
+
+.shortcuts-content {
+    padding: 32px;
+}
+
+.shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 32px;
+}
+
+.shortcut-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #999999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+}
+
+.shortcut-item kbd {
+    background: #404040;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    min-width: 60px;
+    text-align: center;
+    border: 1px solid #555555;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-weight: 600;
+}
+
+.shortcut-item span {
+    color: #cccccc;
+    font-size: 14px;
+    flex: 1;
+}
+
+/* Scrollbar styling for shortcuts panel */
+.shortcuts-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.shortcuts-panel::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.shortcuts-panel::-webkit-scrollbar-thumb {
+    background: #555555;
+    border-radius: 4px;
+}
+
+.shortcuts-panel::-webkit-scrollbar-thumb:hover {
+    background: #666666;
 }

@@ -29,20 +29,26 @@ export class SelectionManager {
     selectObject(meshObject) {
         // Clear previous selection display
         this.clearSelectionDisplay();
-        
+
         // Extract sketch from mesh object using pure function
         const sketch = extractSketchFromMesh(meshObject);
-        
+
         this.selectedObject = sketch;
-        
+
         if (sketch && validateSketchObject(sketch) && this.stateManager.dimensionsEnabled) {
             this.showObjectDimensions(sketch);
             this.showObjectOrigin(sketch);
         }
-        
+
         // Update state manager's selected object to the mesh
         this.stateManager.selectedObject = meshObject;
-        
+
+        // Update status bar
+        if (this.stateManager.statusBarManager) {
+            const objectName = sketch ? sketch.objectId : null;
+            this.stateManager.statusBarManager.updateSelection(objectName);
+        }
+
         // Note: TransformControls attach is handled by InteractionManager or ObjectListManager
     }
 
@@ -50,7 +56,12 @@ export class SelectionManager {
         this.clearSelectionDisplay();
         this.selectedObject = null;
         this.stateManager.selectedObject = null;
-        
+
+        // Update status bar
+        if (this.stateManager.statusBarManager) {
+            this.stateManager.statusBarManager.updateSelection(null);
+        }
+
         // Note: TransformControls detach is handled by ObjectListManager
     }
 
