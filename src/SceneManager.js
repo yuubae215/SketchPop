@@ -344,4 +344,30 @@ export class SceneManager {
 
         console.log(`Fitted ${objectCount} objects to view`);
     }
+
+    /**
+     * Jump to a named standard camera view.
+     * Supported names: 'front' (key 1), 'right' (key 3), 'top' (key 7)
+     */
+    setCameraView(viewName) {
+        const target = this.controls.target.clone();
+        const dist = this.camera.position.distanceTo(target) || 10;
+
+        const positions = {
+            front: new THREE.Vector3(0, 0, dist),
+            right:  new THREE.Vector3(dist, 0, 0),
+            top:    new THREE.Vector3(0, dist, 0),
+        };
+
+        const pos = positions[viewName];
+        if (!pos) return;
+
+        // Offset from the current orbit target so the scene stays centered
+        this.camera.position.copy(target).add(pos);
+        this.camera.lookAt(target);
+        this.controls.target.copy(target);
+        this.controls.update();
+
+        console.log(`Camera set to ${viewName} view`);
+    }
 }
