@@ -1,20 +1,15 @@
 /**
- * StatusBarManager
- * Manages status bar information display and updates
+ * StatusBarManager (simplified)
+ * Manages minimal status bar: mode label + operation hint.
  */
 export class StatusBarManager {
     constructor() {
         this.elements = {
-            cursorCoords: document.getElementById('cursor-coords'),
             currentMode: document.getElementById('current-mode'),
-            cameraType: document.getElementById('camera-type'),
-            objectStats: document.getElementById('object-stats'),
-            selectionInfo: document.getElementById('selection-info'),
             operationHint: document.getElementById('operation-hint')
         };
 
         this.state = {
-            cursorPosition: { x: 0, y: 0, z: 0 },
             mode: 'sketch',
             cameraType: 'perspective',
             objectCount: 0,
@@ -22,22 +17,18 @@ export class StatusBarManager {
         };
     }
 
-    updateCursorPosition(x, y, z) {
-        this.state.cursorPosition = { x, y, z };
-        if (this.elements.cursorCoords) {
-            this.elements.cursorCoords.textContent =
-                `X: ${x.toFixed(1)}, Y: ${y.toFixed(1)}, Z: ${z.toFixed(1)}`;
-        }
+    updateCursorPosition(_x, _y, _z) {
+        // No cursor display in simplified UI
     }
 
     updateMode(mode) {
         this.state.mode = mode;
         if (this.elements.currentMode) {
             const modeNames = {
-                'sketch': 'Sketch',
-                'extrude': 'Extrude',
-                'select': 'Select',
-                'transform': 'Transform'
+                'sketch':    'スケッチ',
+                'extrude':   '押し出し',
+                'select':    '選択',
+                'transform': '変形'
             };
             this.elements.currentMode.textContent = modeNames[mode] || mode;
         }
@@ -46,40 +37,31 @@ export class StatusBarManager {
 
     updateCameraType(type) {
         this.state.cameraType = type;
-        if (this.elements.cameraType) {
-            const cameraNames = {
-                'perspective': 'Perspective',
-                'orthographic': 'Orthographic'
-            };
-            this.elements.cameraType.textContent = cameraNames[type] || type;
-        }
+        // No camera type display in simplified UI
     }
 
     updateObjectCount(count) {
         this.state.objectCount = count;
-        if (this.elements.objectStats) {
-            this.elements.objectStats.textContent = `${count}`;
-        }
+        // No object count display in simplified UI
     }
 
     updateSelection(objectName = null) {
         this.state.selectedObject = objectName;
-        if (this.elements.selectionInfo) {
-            this.elements.selectionInfo.textContent = objectName || 'None';
-        }
         this.updateOperationHint();
     }
 
     updateOperationHint() {
         if (!this.elements.operationHint) return;
 
+        const isMobile = 'ontouchstart' in window;
+
         const hints = {
-            'sketch': 'Click to start sketch',
-            'extrude': 'Move mouse to set height  |  Click to confirm  |  Esc to cancel',
-            'select': this.state.selectedObject
-                ? 'G: Move  R: Rotate  Shift+S: Scale  Delete: Remove'
-                : 'Click an object to select',
-            'transform': 'Drag to transform'
+            'sketch':    isMobile ? 'タップしてスケッチ開始' : 'クリックしてスケッチ開始',
+            'extrude':   isMobile ? 'ドラッグで高さ設定、タップで確定' : 'マウスで高さ設定、クリックで確定',
+            'select':    this.state.selectedObject
+                ? (isMobile ? 'タップで選択解除' : 'G: 移動  R: 回転  Delete: 削除')
+                : (isMobile ? 'オブジェクトをタップ' : 'オブジェクトをクリック'),
+            'transform': '変形中'
         };
 
         this.elements.operationHint.textContent = hints[this.state.mode] || '';
@@ -92,7 +74,6 @@ export class StatusBarManager {
     }
 
     reset() {
-        this.updateCursorPosition(0, 0, 0);
         this.updateMode('sketch');
         this.updateCameraType('perspective');
         this.updateObjectCount(0);

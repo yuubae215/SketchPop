@@ -34,16 +34,22 @@ export class InteractionManager {
 
     setupEventListeners() {
         const canvas = this.sceneManager.renderer.domElement;
-        
+
+        // Mouse events
         canvas.addEventListener('click', this.onClick.bind(this), false);
         canvas.addEventListener('contextmenu', this.onRightClick.bind(this), false);
         canvas.addEventListener('mousemove', this.onMouseMove.bind(this), false);
-        
+
+        // Touch events
+        canvas.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: false });
+        canvas.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: false });
+        canvas.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: false });
+
         window.addEventListener('keydown', this.onKeyDown.bind(this));
     }
 
     setupControls() {
-        // Sidebar controls
+        // Mode buttons
         document.getElementById('sidebar-sketch').addEventListener('click', () => {
             this.stateManager.setMode('sketch');
             this.updateSidebarIcons();
@@ -59,7 +65,11 @@ export class InteractionManager {
             this.updateSidebarIcons();
         });
 
-        // Projection toggle controls
+        document.getElementById('sidebar-clear').addEventListener('click', () => {
+            this.stateManager.clearAll(this.sceneManager);
+        });
+
+        // Projection toggle
         document.getElementById('perspective-btn').addEventListener('click', () => {
             if (this.sceneManager.isPerspective) return;
             this.statusBarManager.updateCameraType('perspective');
@@ -70,37 +80,12 @@ export class InteractionManager {
             this.statusBarManager.updateCameraType('orthographic');
         });
 
-        // Home button - Fit all objects
+        // Home button
         document.getElementById('home-btn').addEventListener('click', () => {
             this.sceneManager.fitAllObjects();
         });
 
-        // Keyboard shortcuts overlay
-        const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-        const closeShortcutsBtn = document.getElementById('close-shortcuts');
-
-        // Close shortcuts overlay on button click
-        closeShortcutsBtn.addEventListener('click', () => {
-            shortcutsOverlay.style.display = 'none';
-        });
-
-        // Close on overlay background click
-        shortcutsOverlay.addEventListener('click', (e) => {
-            if (e.target === shortcutsOverlay) {
-                shortcutsOverlay.style.display = 'none';
-            }
-        });
-
-        document.getElementById('sidebar-clear').addEventListener('click', () => {
-            this.stateManager.clearAll(this.sceneManager);
-        });
-
-        document.getElementById('sidebar-dimensions').addEventListener('click', () => {
-            this.stateManager.toggleDimensions();
-            this.updateSidebarIcons();
-        });
-        
-        // Initialize sidebar icons
+        // Initialize icons
         this.updateSidebarIcons();
     }
 
@@ -108,34 +93,22 @@ export class InteractionManager {
         const sketchIcon = document.getElementById('sidebar-sketch');
         const extrudeIcon = document.getElementById('sidebar-extrude');
         const selectIcon = document.getElementById('sidebar-select');
-        const dimensionsIcon = document.getElementById('sidebar-dimensions');
-        
-        // Remove active class from all mode icons
+
         [sketchIcon, extrudeIcon, selectIcon].forEach(icon => {
             if (icon) icon.classList.remove('active');
         });
-        
-        // Add active class to current mode
+
         switch (this.stateManager.currentMode) {
             case 'sketch':
                 if (sketchIcon) sketchIcon.classList.add('active');
                 break;
             case 'extrude':
-            case 'face-extrude':  // Both use same UI button
+            case 'face-extrude':
                 if (extrudeIcon) extrudeIcon.classList.add('active');
                 break;
             case 'select':
                 if (selectIcon) selectIcon.classList.add('active');
                 break;
-        }
-        
-        // Update dimensions icon
-        if (dimensionsIcon) {
-            if (this.stateManager.dimensionsEnabled) {
-                dimensionsIcon.classList.add('active');
-            } else {
-                dimensionsIcon.classList.remove('active');
-            }
         }
     }
 
@@ -311,24 +284,123 @@ export class InteractionManager {
         }
     }
 
+    // ── Touch helpers ─────────────────────────────────────────────────────
+
+    /**
+     * Convert a Touch object to a synthetic mouse-like event usable by
+     * existing mouse handlers (getMouseIntersection, raycaster, etc.).
+     */
+    _touchToFakeEvent(touch) {
+        return {
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            target: touch.target,
+        };
+    }
+
+    onTouchStart(event) {
+        // Two-finger gestures are handled by OrbitControls — don't interfere.
+        if (event.touches.length !== 1) return;
+
+        const mode = this.stateManager.currentMode;
+        const isActivelyWorking = this.stateManager.isDrawing
+            || this.stateManager.isExtruding
+            || this.stateManager.isFaceExtruding;
+
+        // In sketch/extrude mode (or actively working), capture the touch for drawing.
+        // In select mode, let OrbitControls handle orbiting.
+        if (mode === 'sketch' || mode === 'extrude' || mode === 'face-extrude' || isActivelyWorking) {
+            event.preventDefault();
+            this.sceneManager.setTouchDrawingMode(true);
+        } else {
+            // Select mode: restore orbit, let OrbitControls take over
+            this.sceneManager.setTouchDrawingMode(false);
+        }
+
+        const fakeEvent = this._touchToFakeEvent(event.touches[0]);
+        const intersection = this.sceneManager.getMouseIntersection(fakeEvent);
+
+        this._touchStartPos = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        this._touchStartIntersection = intersection;
+        this._touchMoved = false;
+    }
+
+    onTouchMove(event) {
+        if (event.touches.length !== 1) return;
+
+        const touch = event.touches[0];
+        const dx = touch.clientX - (this._touchStartPos?.x ?? touch.clientX);
+        const dy = touch.clientY - (this._touchStartPos?.y ?? touch.clientY);
+
+        // Mark as moved if the finger drifted more than 8px
+        if (Math.sqrt(dx * dx + dy * dy) > 8) {
+            this._touchMoved = true;
+        }
+
+        // In sketch mode while drawing, update the sketch preview.
+        if (!this._touchMoved && this.stateManager.isDrawing && this.stateManager.currentSketch) {
+            event.preventDefault();
+            const fakeEvent = this._touchToFakeEvent(touch);
+            const intersection = this.sceneManager.getMouseIntersection(fakeEvent);
+            if (intersection) {
+                const mesh = this.stateManager.currentSketch.update(intersection);
+                if (mesh) this.sceneManager.addToScene(mesh);
+            }
+            return;
+        }
+
+        // Extrusion drag: update extrusion height while finger moves vertically.
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch && this.stateManager.extrudeStartPos) {
+            event.preventDefault();
+            const fakeEvent = this._touchToFakeEvent(touch);
+            const intersection = this.sceneManager.getMouseIntersection(fakeEvent);
+            if (intersection) {
+                const distance = intersection.distanceTo(this.stateManager.extrudeStartPos);
+                const height = Math.max(0, distance * 0.5);
+                const mesh = this.stateManager.selectedSketch.extrude(height);
+                if (mesh) this.sceneManager.addToScene(mesh);
+
+                if (this.stateManager.dimensionsEnabled && height > 0.1) {
+                    this.updateSketchExtrusionDimensions(this.stateManager.selectedSketch, height);
+                }
+            }
+        }
+    }
+
+    onTouchEnd(event) {
+        // Ignore multi-touch lifts
+        if (event.changedTouches.length !== 1) return;
+
+        // Re-enable orbit after any touch ends
+        this.sceneManager.setTouchDrawingMode(false);
+
+        // Only treat as a tap if the finger barely moved
+        if (this._touchMoved) {
+            this._touchMoved = false;
+            return;
+        }
+
+        event.preventDefault();
+        const fakeEvent = this._touchToFakeEvent(event.changedTouches[0]);
+        const intersection = this._touchStartIntersection ?? this.sceneManager.getMouseIntersection(fakeEvent);
+
+        switch (this.stateManager.currentMode) {
+            case 'sketch':
+                this.handleSketchClick(intersection);
+                break;
+            case 'extrude':
+            case 'face-extrude':
+                this.handleExtrudeClick(intersection, fakeEvent);
+                break;
+            case 'select':
+                this.handleSelectClick(intersection, fakeEvent);
+                break;
+        }
+
+        this._touchMoved = false;
+    }
+
     onKeyDown(event) {
-        // Toggle keyboard shortcuts help with '?'
-        if (event.key === '?' || (event.shiftKey && event.key === '/')) {
-            event.preventDefault();
-            const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-            const isVisible = shortcutsOverlay.style.display !== 'none';
-            shortcutsOverlay.style.display = isVisible ? 'none' : 'flex';
-            return;
-        }
-
-        // Close shortcuts overlay on Escape
-        const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-        if (event.key === 'Escape' && shortcutsOverlay.style.display === 'flex') {
-            event.preventDefault();
-            shortcutsOverlay.style.display = 'none';
-            return;
-        }
-
         // Undo / Redo
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
             event.preventDefault();

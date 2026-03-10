@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SceneHandler, RenderHandler, InteractionHandler } from './handlers/threeHandlers.js';
-import { AxisTriad } from './AxisTriad.js';
-import { ViewCube } from './ViewCube.js';
 
 export class SceneManager {
     constructor() {
@@ -15,8 +13,6 @@ export class SceneManager {
         this.raycaster = new THREE.Raycaster();
         this.sketchPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         this.isPerspective = true;
-        this.axisTriad = null;
-        this.viewCube = null;
 
         // Initialize handlers
         this.sceneHandler = new SceneHandler();
@@ -32,10 +28,6 @@ export class SceneManager {
         this.createLights();
         this.createGroundPlane();
         this.setupEventListeners();
-
-        // Create axis triad and view cube after camera is initialized
-        this.axisTriad = new AxisTriad(this.camera);
-        this.viewCube = new ViewCube(this.camera, this.controls);
 
         return {
             scene: this.scene,
@@ -141,7 +133,7 @@ export class SceneManager {
         };
         
         this.controls.touches = {
-            ONE: null,
+            ONE: THREE.TOUCH.ROTATE,
             TWO: THREE.TOUCH.DOLLY_PAN
         };
     }
@@ -217,16 +209,6 @@ export class SceneManager {
         this.controls.target.copy(target);
         this.controls.update();
 
-        // Update axis triad camera reference
-        if (this.axisTriad) {
-            this.axisTriad.camera = this.camera;
-        }
-
-        // Update view cube camera reference
-        if (this.viewCube) {
-            this.viewCube.mainCamera = this.camera;
-        }
-
         // Update UI buttons
         this.updateProjectionButtons();
 
@@ -253,6 +235,18 @@ export class SceneManager {
         
         this.interactionHandler.updateMousePosition(event, this.renderer.domElement);
         return this.interactionHandler.getIntersectionPoint(this.camera);
+    }
+
+    /**
+     * When the user is actively drawing or extruding, disable ONE-finger orbit
+     * so that touch events reach the canvas for drawing.  Re-enable when idle.
+     */
+    setTouchDrawingMode(enabled) {
+        if (enabled) {
+            this.controls.touches.ONE = null;   // Disable orbit; app handles the touch
+        } else {
+            this.controls.touches.ONE = THREE.TOUCH.ROTATE;
+        }
     }
 
     addToScene(object) {
