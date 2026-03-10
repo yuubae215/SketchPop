@@ -1,30 +1,42 @@
 # SketchPop UX Improvement Backlog
 
-Reference: Blender, Fusion 360, FreeCAD UX patterns.
+Reference: Blender, Fusion 360, FreeCAD, Onshape UX patterns.
+Source of improvements: `docs/CAD_UX_IMPROVEMENTS.md`
 
 ---
 
-## Implemented
+## Implemented ✅
 
 ### [DONE] Auto-flow: Sketch completion triggers extrusion immediately
-After finishing a 2D sketch, the app automatically switches to extrude mode and starts height adjustment — no manual mode switch required. Click to confirm, Esc to cancel.
+After finishing a 2D sketch, the app automatically switches to extrude mode and starts height adjustment. Click to confirm, Esc to cancel.
 
 ### [DONE] Remove confirmation step (pending state)
-Extrusion (both sketch and face) now confirms on click, without an intermediate orange "pending" state or confirm/cancel buttons. Right-click is an alternative confirm. Esc cancels.
+Extrusion confirms on click without an intermediate orange "pending" state. Right-click is an alternative confirm.
+
+### [DONE] ViewCube — `ViewCube.js`
+Interactive 3D cube (top-right). Each face/edge/corner snaps to the corresponding standard view. Synced to main camera.
+
+### [DONE] AxisTriad — `AxisTriad.js`
+X/Y/Z axis indicator (bottom-left), follows camera rotation.
+
+### [DONE] StatusBar — `StatusBarManager.js`
+Bottom bar showing current mode, object count, and operation hints.
+
+### [DONE] Home / Fit-all — `F` key, Home button
+Fits all objects into the camera view.
+
+### [DONE] Background gradient
+Scene renders a gradient background for depth perception.
 
 ### [DONE] Undo / Redo — Sprint 2026-03-10
-`Ctrl+Z` / `Cmd+Z` undoes the last action.
-Covered operations: sketch creation, sketch extrusion (height confirm), object deletion.
+`Ctrl+Z` / `Cmd+Z` undoes the last action (sketch creation, extrusion confirm, object deletion).
 Implementation: Command pattern (`CommandManager.js`) with a 50-deep undo stack.
 
 ### [DONE] Numeric input during operations — Sprint 2026-03-10
-While extruding, type digits + Enter to set an exact height.
-Works for both sketch extrusion and face extrusion.
-A HUD overlay confirms the value being typed.
-Reference: Blender transform input (G → Z → 100 → Enter).
+While extruding, type digits + Enter to set an exact height. HUD overlay shows the typed value.
+Covers both sketch extrusion and face extrusion.
 
 ### [DONE] Named views / standard camera presets — Sprint 2026-03-10
-Numpad-style camera shortcuts (Blender convention):
 - `1` → Front view
 - `3` → Right view
 - `7` → Top view
@@ -33,8 +45,14 @@ Numpad-style camera shortcuts (Blender convention):
 
 ## Backlog
 
-### [TODO] Context-sensitive operations (mode-free interaction)
-**Priority: High**
+### Priority key
+🔴 High — blocks common workflows
+🟠 Medium — noticeable UX gap
+🟢 Low — polish / power-user feature
+
+---
+
+### 🔴 [TODO] Context-sensitive operations (mode-free interaction)
 
 Replace explicit mode switching with context-aware behavior:
 
@@ -45,55 +63,166 @@ Replace explicit mode switching with context-aware behavior:
 | Extruded face | Show face-extrude handle |
 | Extruded object body | Show move/rotate gizmo |
 
-Mode buttons become secondary/optional. Removes cognitive overhead of "which mode am I in?".
+Mode buttons become secondary/optional.
+Reference: Onshape, Fusion 360.
 
 ---
 
-### [TODO] Unified toolbar / UI consolidation
-**Priority: High**
+### 🔴 [TODO] Property panel (right slide-in panel)
 
-Current state: mode buttons (right sidebar), selection toggle, projection toggle, home button all float independently on the canvas — no visual grouping.
+Show selected object's properties in a panel that slides in on selection:
+- **Transform**: position (X, Y, Z), rotation, scale — numeric input fields
+- **Dimensions**: W × D × H with live update on input
+- **Appearance**: color picker, opacity slider
+- **Info**: name, type
 
-Proposed:
-- Top header bar: file actions on left, active mode indicator in center, view controls (projection, fit) on right
-- Right panel: slides in on object selection, shows properties (dimensions, position) with direct numeric input
-- Remove floating canvas UI elements; keep viewport clean
-
-Reference: Fusion 360 toolbar layout.
+Replaces the need to use TransformControls gizmo for precise values.
+Reference: Fusion 360 right panel, Blender N-panel.
 
 ---
 
-### [TODO] Context menu on right-click (non-extrude state)
-**Priority: Medium**
+### 🔴 [TODO] Redo (`Ctrl+Y` / `Ctrl+Shift+Z`)
 
-Right-click on an object (outside of active extrusion):
-- Delete
-- Duplicate
-- Select face(s)
+`CommandManager.redo()` stub already exists; implement the re-execution path so that undone commands can be reapplied.
+
+---
+
+### 🟠 [TODO] Unified toolbar / UI consolidation
+
+Current state: mode icons, selection toggle, projection toggle, home button float independently.
+
+Proposed layout:
+- **Top bar**: file actions left | mode indicator center | view controls right
+- **Right panel**: collapses when nothing selected; becomes property panel on selection
+- Remove remaining floating canvas elements for a cleaner viewport
+
+Reference: Fusion 360 toolbar.
+
+---
+
+### 🟠 [TODO] Context menu on right-click (non-extrude state)
+
+Right-click on an object:
+- Delete, Duplicate, Rename, Hide/Show, Properties
 
 Right-click on empty space:
-- Start sketch here
-- Reset view
+- Start sketch here, Reset view
 
-Currently right-click is only used to confirm extrusion; repurpose it for contextual actions.
+Currently right-click only confirms extrusion; extend for contextual actions.
 
 ---
 
-### [TODO] Object list improvements
-**Priority: Low**
+### 🟠 [TODO] Grid snapping
 
-- Show object dimensions inline (W × D × H)
-- Drag-and-drop reordering
-- Visibility toggle per object (eye icon)
+Snap sketch corners and extrusion heights to a configurable grid (e.g. 0.5, 1, 5 unit intervals).
+Toggle button + hotkey (`G`).
+Includes object snap (edge, vertex, face-center) and angle snap (15°, 45°, 90°).
+
+---
+
+### 🟠 [TODO] Duplicate / Mirror
+
+- Duplicate selected object: `Ctrl+D`
+- Mirror on X / Y / Z axis
+- Linear array: N copies with spacing
+
+Reference: Blender, Fusion 360 mirror/pattern features.
+
+---
+
+### 🟠 [TODO] Export
+
+Supported formats:
+- **STL** — 3D printing
+- **OBJ** — general exchange
+- **GLTF/GLB** — web/game engines
+- **PNG** — viewport screenshot
+
+Accessible via a top-bar "File" menu or keyboard shortcut.
+
+---
+
+### 🟠 [TODO] Notification / toast system
+
+Non-blocking toasts (top-right) for user feedback:
+- ✅ Success (green): "オブジェクトを作成しました"
+- ℹ️ Info (blue): "スケッチモードに切り替えました"
+- ⚠️ Warning (yellow): "選択されたオブジェクトがありません"
+- ❌ Error (red): "操作に失敗しました"
+
+Auto-dismiss after 3–5 s; stack multiple toasts.
+
+---
+
+### 🟢 [TODO] History / Timeline panel
+
+Visual operation history at the bottom (Fusion 360 style):
+
+```
+[ Sketch-1 ] [ Extrude-1 (h=3) ] [ Move-1 ] [ FaceExtrude-1 ]
+```
+
+- Click to jump to that state
+- Right-click to delete / suppress
+- Powered by `CommandManager` undo stack (data already exists)
+
+---
+
+### 🟢 [TODO] Command palette
+
+`Ctrl+K` / `Ctrl+P`: fuzzy-search all commands with keyboard navigation.
+Shows shortcut hint next to each result.
+Reference: VS Code, Fusion 360 `S` key search.
+
+---
+
+### 🟢 [TODO] Display modes
+
+Toggle via toolbar or hotkey (`W`):
+- **Shaded** (current default)
+- **Shaded + Edges** — overlay edge lines on solids
+- **Wireframe** — outline only
+- **X-Ray** — semi-transparent to see through solids
+
+---
+
+### 🟢 [TODO] Object list improvements
+
+- Show dimensions inline (W × D × H)
+- Visibility toggle per object (eye icon, `H` key)
 - Rename on double-click
+- Drag-and-drop reordering
 
-Reference: Blender outliner, Fusion 360 browser tree.
+Reference: Blender outliner, Fusion 360 browser.
+
+---
+
+### 🟢 [TODO] Project save / load
+
+- Save scene to JSON (localStorage + file download)
+- Load from JSON file
+- Auto-save on change
+- Recent files list
 
 ---
 
-### [TODO] Grid snapping
-**Priority: Medium**
+### 🟢 [TODO] Measurement tools
 
-Snap sketch corners and extrusion heights to a configurable grid (e.g. 0.5 unit intervals). Toggle with a toolbar button or hotkey.
+- Distance between two clicked points
+- Angle between two edges
+- Face area
+- Results shown as in-viewport annotations
 
 ---
+
+---
+
+## Roadmap (suggested sprint order)
+
+| Sprint | Focus | Items |
+|--------|-------|-------|
+| Next | Core usability | Context-sensitive ops, Property panel, Redo |
+| +1 | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
+| +2 | Data & output | Export, Project save/load, Grid snapping |
+| +3 | Power-user | Command palette, History timeline, Display modes |
+| +4 | Polish | Object list improvements, Measurement tools |
