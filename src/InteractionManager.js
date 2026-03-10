@@ -4,6 +4,7 @@ import { SketchRectangle } from './SketchRectangle.js';
 import { SelectionManager } from './SelectionManager.js';
 import { TransformManager } from './TransformManager.js';
 import { StatusBarManager } from './StatusBarManager.js';
+import { CommandManager } from './CommandManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -13,8 +14,11 @@ export class InteractionManager {
         this.selectionManager = new SelectionManager(sceneManager, stateManager);
         this.transformManager = new TransformManager(sceneManager, stateManager);
         this.statusBarManager = new StatusBarManager();
+        this.commandManager = new CommandManager();
         this.mouse = new THREE.Vector2();
         this.sketchExtrusionDimensions = [];
+        this._numericInput = '';       // buffer for numeric extrusion input
+        this._numericOverlay = null;   // DOM element (created lazily)
 
         // Set managers in state manager
         this.stateManager.setSelectionManager(this.selectionManager);
@@ -184,6 +188,10 @@ export class InteractionManager {
             const completedSketch = this.stateManager.currentSketch;
             const success = this.stateManager.finishDrawing();
             if (success && completedSketch) {
+                // Record undo command for sketch creation
+                this.commandManager.push(
+                    CommandManager.createAddSketch(completedSketch, this.sceneManager, this.stateManager)
+                );
                 // Auto-transition: switch to extrude mode and start extruding immediately
                 this.stateManager.setMode('extrude');
                 this.updateSidebarIcons();
@@ -204,6 +212,7 @@ export class InteractionManager {
                 this.extrusionManager.cancelFaceExtrusion();
             }
             this.clearSketchExtrusionDimensions();
+            this._clearNumericInput();
         } else {
             this.handleRegularExtrudeClick(intersection);
         }
@@ -211,9 +220,17 @@ export class InteractionManager {
 
     handleRegularExtrudeClick(intersection) {
         if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            const sketchForUndo = this.stateManager.selectedSketch;
             // Direct confirm on click
             this.stateManager.finishExtrusion();
             this.clearSketchExtrusionDimensions();
+            this._clearNumericInput();
+            // Record undo command only if the extrusion actually went through
+            if (sketchForUndo.isExtruded) {
+                this.commandManager.push(
+                    CommandManager.createExtrude(sketchForUndo, this.sceneManager, this.stateManager)
+                );
+            }
         } else {
             for (let sketch of this.stateManager.sketches) {
                 if (!sketch.isExtruded && sketch.containsPoint(intersection)) {
@@ -274,8 +291,15 @@ export class InteractionManager {
         event.preventDefault();
         // Right-click also confirms active extrusion
         if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            const sketchForUndo = this.stateManager.selectedSketch;
             this.stateManager.finishExtrusion();
             this.clearSketchExtrusionDimensions();
+            this._clearNumericInput();
+            if (sketchForUndo.isExtruded) {
+                this.commandManager.push(
+                    CommandManager.createExtrude(sketchForUndo, this.sceneManager, this.stateManager)
+                );
+            }
         } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
             if (Math.abs(this.stateManager.currentFaceExtrusion.extrudeDistance) > 0.1) {
                 this.extrusionManager.confirmFaceExtrusion();
@@ -283,6 +307,7 @@ export class InteractionManager {
                 this.extrusionManager.cancelFaceExtrusion();
             }
             this.clearSketchExtrusionDimensions();
+            this._clearNumericInput();
         }
     }
 
@@ -302,6 +327,37 @@ export class InteractionManager {
             event.preventDefault();
             shortcutsOverlay.style.display = 'none';
             return;
+        }
+
+        // Undo / Redo
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+            event.preventDefault();
+            this.commandManager.undo();
+            return;
+        }
+
+        // Numeric input during active extrusion (sketch or face)
+        const isExtruding = this.stateManager.isExtruding || this.stateManager.isFaceExtruding;
+        if (isExtruding) {
+            if (/^[0-9]$/.test(event.key) || event.key === '.') {
+                event.preventDefault();
+                this._appendNumericInput(event.key);
+                return;
+            }
+            if (event.key === 'Backspace') {
+                event.preventDefault();
+                this._numericInput = this._numericInput.slice(0, -1);
+                this._renderNumericOverlay();
+                return;
+            }
+            if (event.key === 'Enter' && this._numericInput.length > 0) {
+                event.preventDefault();
+                const value = parseFloat(this._numericInput);
+                if (!isNaN(value) && value > 0) {
+                    this._applyNumericExtrusion(value);
+                }
+                return;
+            }
         }
 
         // Mode switching shortcuts
@@ -324,8 +380,19 @@ export class InteractionManager {
                 // Fit all objects to view
                 this.sceneManager.fitAllObjects();
                 break;
+            // Named camera views (Blender numpad convention)
+            case '1':
+                this.sceneManager.setCameraView('front');
+                break;
+            case '3':
+                this.sceneManager.setCameraView('right');
+                break;
+            case '7':
+                this.sceneManager.setCameraView('top');
+                break;
             case 'escape':
                 if (this.stateManager.isExtruding || this.stateManager.isFaceExtruding) {
+                    this._clearNumericInput();
                     this.cancelExtrusion();
                 } else {
                     this.transformManager.detachFromObject();
@@ -341,6 +408,85 @@ export class InteractionManager {
             this.transformManager.handleKeyboardShortcut(event.key);
         }
     }
+
+    // ── Numeric extrusion input ────────────────────────────────────────────
+
+    _getOrCreateNumericOverlay() {
+        if (!this._numericOverlay) {
+            const el = document.createElement('div');
+            el.id = 'numeric-input-overlay';
+            el.style.cssText = [
+                'position:fixed',
+                'bottom:60px',
+                'left:50%',
+                'transform:translateX(-50%)',
+                'background:rgba(0,0,0,0.8)',
+                'color:#fff',
+                'font-family:monospace',
+                'font-size:20px',
+                'padding:8px 20px',
+                'border-radius:6px',
+                'border:2px solid #ff9500',
+                'pointer-events:none',
+                'z-index:9999',
+                'display:none',
+            ].join(';');
+            document.body.appendChild(el);
+            this._numericOverlay = el;
+        }
+        return this._numericOverlay;
+    }
+
+    _appendNumericInput(char) {
+        // Allow only one decimal point
+        if (char === '.' && this._numericInput.includes('.')) return;
+        this._numericInput += char;
+        this._renderNumericOverlay();
+    }
+
+    _renderNumericOverlay() {
+        const el = this._getOrCreateNumericOverlay();
+        if (this._numericInput.length > 0) {
+            el.textContent = `Height: ${this._numericInput}`;
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
+    _clearNumericInput() {
+        this._numericInput = '';
+        if (this._numericOverlay) this._numericOverlay.style.display = 'none';
+    }
+
+    _applyNumericExtrusion(value) {
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            const sketch = this.stateManager.selectedSketch;
+            // Force the sketch to the typed height and confirm
+            sketch.extrude(value);
+            if (sketch.extrudedMesh) {
+                this.sceneManager.addToScene(sketch.extrudedMesh);
+            }
+            const sketchForUndo = sketch;
+            this.stateManager.finishExtrusion();
+            this.clearSketchExtrusionDimensions();
+            this._clearNumericInput();
+            if (sketchForUndo.isExtruded) {
+                this.commandManager.push(
+                    CommandManager.createExtrude(sketchForUndo, this.sceneManager, this.stateManager)
+                );
+            }
+        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
+            // Override the face extrusion distance with the typed value
+            this.stateManager.currentFaceExtrusion.extrudeDistance = value;
+            this.extrusionManager.createFaceExtrusionMesh(this.stateManager.currentFaceExtrusion, value);
+            this.extrusionManager.confirmFaceExtrusion();
+            this.clearSketchExtrusionDimensions();
+            this._clearNumericInput();
+        }
+    }
+
+    // ── Extrusion confirm / cancel ─────────────────────────────────────────
 
     confirmExtrusion() {
         if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
@@ -524,6 +670,9 @@ export class InteractionManager {
         if (this.stateManager.selectedObject) {
             const sketch = this.stateManager.selectedObject.userData.sketchRectangle;
             if (sketch) {
+                // Record undo command BEFORE removing
+                const deleteCmd = CommandManager.createDelete(sketch, this.sceneManager, this.stateManager);
+
                 // Remove from scene
                 if (sketch.mesh) {
                     this.sceneManager.removeFromScene(sketch.mesh);
@@ -531,21 +680,24 @@ export class InteractionManager {
                 if (sketch.extrudedMesh) {
                     this.sceneManager.removeFromScene(sketch.extrudedMesh);
                 }
-                
+
                 // Remove dimensions
                 sketch.clearDimensions();
-                
+
                 // Remove from state manager
                 this.stateManager.removeSketch(sketch);
-                
+
                 // Detach transform controls if attached
                 if (this.transformManager.currentTransformObject === this.stateManager.selectedObject) {
                     this.transformManager.detachFromObject();
                 }
-                
+
                 // Clear selection
                 this.selectionManager.deselectAll();
-                
+
+                // Push after all removal side-effects are done
+                this.commandManager.push(deleteCmd);
+
                 console.log('Selected object deleted');
             }
         }

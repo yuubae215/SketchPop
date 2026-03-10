@@ -12,6 +12,23 @@ After finishing a 2D sketch, the app automatically switches to extrude mode and 
 ### [DONE] Remove confirmation step (pending state)
 Extrusion (both sketch and face) now confirms on click, without an intermediate orange "pending" state or confirm/cancel buttons. Right-click is an alternative confirm. Esc cancels.
 
+### [DONE] Undo / Redo — Sprint 2026-03-10
+`Ctrl+Z` / `Cmd+Z` undoes the last action.
+Covered operations: sketch creation, sketch extrusion (height confirm), object deletion.
+Implementation: Command pattern (`CommandManager.js`) with a 50-deep undo stack.
+
+### [DONE] Numeric input during operations — Sprint 2026-03-10
+While extruding, type digits + Enter to set an exact height.
+Works for both sketch extrusion and face extrusion.
+A HUD overlay confirms the value being typed.
+Reference: Blender transform input (G → Z → 100 → Enter).
+
+### [DONE] Named views / standard camera presets — Sprint 2026-03-10
+Numpad-style camera shortcuts (Blender convention):
+- `1` → Front view
+- `3` → Right view
+- `7` → Top view
+
 ---
 
 ## Backlog
@@ -46,17 +63,6 @@ Reference: Fusion 360 toolbar layout.
 
 ---
 
-### [TODO] Numeric input during operations
-**Priority: Medium**
-
-While extruding, allow typing a value to set exact height:
-- `100` → confirm at height 100 (in current units)
-- Works for both sketch extrusion and face extrusion
-
-Reference: Blender transform input (G → Z → 100 → Enter).
-
----
-
 ### [TODO] Context menu on right-click (non-extrude state)
 **Priority: Medium**
 
@@ -85,29 +91,9 @@ Reference: Blender outliner, Fusion 360 browser tree.
 
 ---
 
-### [TODO] Undo / Redo
-**Priority: High**
-
-Ctrl+Z / Ctrl+Y (or Cmd+Z / Cmd+Shift+Z on Mac).
-
-Minimum viable: undo last sketch creation, last extrusion, last delete.
-
----
-
 ### [TODO] Grid snapping
 **Priority: Medium**
 
 Snap sketch corners and extrusion heights to a configurable grid (e.g. 0.5 unit intervals). Toggle with a toolbar button or hotkey.
-
----
-
-### [TODO] Named views / standard camera presets
-**Priority: Low**
-
-Numpad-style camera shortcuts (Blender convention):
-- `1` → Front
-- `3` → Right
-- `7` → Top
-- `0` → Perspective home
 
 ---
