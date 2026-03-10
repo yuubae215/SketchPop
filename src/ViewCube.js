@@ -36,7 +36,7 @@ export class ViewCube {
         this.container.id = 'view-cube';
         this.container.style.cssText = `
             position: absolute;
-            top: 142px;
+            top: 64px;
             left: 10px;
             width: 120px;
             height: 120px;

@@ -38,6 +38,15 @@ export class AxisTriad {
         // Use orthographic camera (no perspective)
         this.triadCamera = new THREE.OrthographicCamera(-2, 2, 2, -2, 0.1, 10);
         this.triadCamera.position.set(0, 0, 5);
+        this.triadCamera.lookAt(0, 0, 0);
+
+        // ライトを追加して立体感を出す
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        this.scene.add(directionalLight);
 
         // Create dedicated renderer
         this.renderer = new THREE.WebGLRenderer({
@@ -59,7 +68,7 @@ export class AxisTriad {
         // Axis length
         const axisLength = 1.5;
         const arrowSize = 0.15;
-        const labelOffset = 0.3;
+        const labelOffset = 0.35;
 
         // X axis (red)
         const xAxisGeometry = new THREE.BufferGeometry().setFromPoints([
@@ -131,20 +140,23 @@ export class AxisTriad {
         // Create text sprite
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        canvas.width = 64;
-        canvas.height = 64;
+        canvas.width = 128;
+        canvas.height = 128;
 
         context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
-        context.font = 'Bold 48px Arial';
+        context.font = 'Bold 80px Arial';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText(text, 32, 32);
+        context.fillText(text, 64, 64);
 
         const texture = new THREE.CanvasTexture(canvas);
-        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            sizeAttenuation: false
+        });
         const sprite = new THREE.Sprite(spriteMaterial);
         sprite.position.set(x, y, z);
-        sprite.scale.set(0.5, 0.5, 0.5);
+        sprite.scale.set(0.4, 0.4, 0.4);
 
         this.scene.add(sprite);
     }
