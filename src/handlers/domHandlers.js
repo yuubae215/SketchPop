@@ -18,11 +18,12 @@ export class ObjectListDOMHandler {
      * @param {string} htmlContent - HTML content for the item
      */
     addObjectItem(itemData, htmlContent) {
+        if (!this.objectList) return;
         const objectItem = document.createElement('div');
         objectItem.className = `object-item ${itemData.className}`;
         objectItem.dataset.objectId = itemData.id;
         objectItem.innerHTML = htmlContent;
-        
+
         this.objectList.appendChild(objectItem);
         this.updateObjectCount();
     }
@@ -33,6 +34,7 @@ export class ObjectListDOMHandler {
      * @param {Object} itemData - new item data
      */
     updateObjectItem(objectId, itemData) {
+        if (!this.objectList) return;
         const objectItem = this.objectList.querySelector(`[data-object-id="${objectId}"]`);
         if (!objectItem) return;
 
@@ -52,6 +54,7 @@ export class ObjectListDOMHandler {
      * @param {string} objectId - object ID to remove
      */
     removeObjectItem(objectId) {
+        if (!this.objectList) return;
         const objectItem = this.objectList.querySelector(`[data-object-id="${objectId}"]`);
         if (objectItem) {
             objectItem.remove();
@@ -64,6 +67,7 @@ export class ObjectListDOMHandler {
      * @param {Object} selectionChanges - selection change operations
      */
     updateSelection(selectionChanges) {
+        if (!this.objectList) return;
         // Remove previous selection
         if (selectionChanges.shouldRemoveSelection && selectionChanges.removeFromId) {
             const previousSelected = this.objectList.querySelector('.object-item.selected');
@@ -85,6 +89,7 @@ export class ObjectListDOMHandler {
      * Clear all object items
      */
     clearAllItems() {
+        if (!this.objectList) return;
         this.objectList.innerHTML = '';
         this.updateObjectCount();
     }
@@ -93,6 +98,7 @@ export class ObjectListDOMHandler {
      * Update object count display
      */
     updateObjectCount() {
+        if (!this.objectList || !this.objectCount) return;
         const count = this.objectList.children.length;
         this.objectCount.textContent = count;
     }
@@ -102,6 +108,7 @@ export class ObjectListDOMHandler {
      * @param {Function} clickHandler - function to handle clicks
      */
     addClickListener(clickHandler) {
+        if (!this.objectList) return;
         this.objectList.addEventListener('click', clickHandler);
     }
 }
