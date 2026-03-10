@@ -1,7 +1,7 @@
 /**
  * ViewCube
- * 画面右上に表示される3Dビューコントロール
- * Autodesk製品の標準機能を再現
+ * 3D view control displayed at the top-left of the viewport
+ * Provides quick camera preset views
  */
 import * as THREE from 'three';
 
@@ -19,19 +19,19 @@ export class ViewCube {
 
         // View definitions
         this.views = {
-            front: { position: [0, 0, 5], name: '正面' },
-            back: { position: [0, 0, -5], name: '背面' },
-            left: { position: [-5, 0, 0], name: '左' },
-            right: { position: [5, 0, 0], name: '右' },
-            top: { position: [0, 5, 0], name: '上' },
-            bottom: { position: [0, -5, 0], name: '下' }
+            front: { position: [0, 0, 5], name: 'Front' },
+            back: { position: [0, 0, -5], name: 'Back' },
+            left: { position: [-5, 0, 0], name: 'Left' },
+            right: { position: [5, 0, 0], name: 'Right' },
+            top: { position: [0, 5, 0], name: 'Top' },
+            bottom: { position: [0, -5, 0], name: 'Bottom' }
         };
 
         this.init();
     }
 
     init() {
-        // コンテナ要素を作成
+        // Create container element
         this.container = document.createElement('div');
         this.container.id = 'view-cube';
         this.container.style.cssText = `
@@ -50,13 +50,13 @@ export class ViewCube {
         `;
         document.getElementById('canvas-container').appendChild(this.container);
 
-        // 専用のシーンとカメラを作成
+        // Create dedicated scene and camera
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
         this.camera.position.set(3, 3, 3);
         this.camera.lookAt(0, 0, 0);
 
-        // 専用のレンダラーを作成
+        // Create dedicated renderer
         this.renderer = new THREE.WebGLRenderer({
             alpha: true,
             antialias: true
@@ -65,20 +65,20 @@ export class ViewCube {
         this.renderer.setClearColor(0x000000, 0);
         this.container.appendChild(this.renderer.domElement);
 
-        // キューブを作成
+        // Create cube
         this.createCube();
 
-        // イベントリスナー
+        // Event listeners
         this.setupEventListeners();
 
-        // アニメーションループ
+        // Animation loop
         this.animate();
     }
 
     createCube() {
         const geometry = new THREE.BoxGeometry(1, 1, 1);
 
-        // 各面に異なる色を設定
+        // Set different color per face
         const materials = [
             new THREE.MeshBasicMaterial({ color: 0x6b6b7b, transparent: true, opacity: 0.8 }), // Right (X+)
             new THREE.MeshBasicMaterial({ color: 0x5b5b6b, transparent: true, opacity: 0.8 }), // Left (X-)
@@ -90,7 +90,7 @@ export class ViewCube {
 
         this.cube = new THREE.Mesh(geometry, materials);
 
-        // エッジを追加
+        // Add edges
         const edges = new THREE.EdgesGeometry(geometry);
         const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
         const wireframe = new THREE.LineSegments(edges, lineMaterial);
@@ -98,7 +98,7 @@ export class ViewCube {
 
         this.scene.add(this.cube);
 
-        // ラベルを追加
+        // Add labels
         this.addLabels();
     }
 

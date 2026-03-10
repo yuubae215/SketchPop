@@ -17,11 +17,7 @@ export class ExtrusionManager {
             this.stateManager.hoveredFace = null;
         }
         
-        // Don't highlight faces if there's already a pending extrusion
-        const hasPendingExtrusion = this.stateManager.pendingExtrusion || 
-                                   (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending);
-        
-        if (this.stateManager.isFaceExtruding || hasPendingExtrusion) return;
+        if (this.stateManager.isFaceExtruding) return;
         
         const rect = this.sceneManager.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -311,7 +307,6 @@ export class ExtrusionManager {
             this.sceneManager.removeFromScene(this.stateManager.faceHighlightMesh);
             this.stateManager.faceHighlightMesh = null;
         }
-        this.stateManager.hideConfirmationControls();
     }
 
     cancelFaceExtrusion() {
@@ -336,8 +331,6 @@ export class ExtrusionManager {
             this.sceneManager.removeFromScene(this.stateManager.faceHighlightMesh);
             this.stateManager.faceHighlightMesh = null;
         }
-        this.stateManager.hideConfirmationControls();
-        console.log('Face extrusion cancelled and states reset');
     }
 
     integrateExtrusionWithOriginal(faceExtrusion) {

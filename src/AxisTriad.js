@@ -1,7 +1,7 @@
 /**
  * AxisTriad
- * 画面左下に固定表示される3D軸インジケーター
- * カメラの回転に追従してXYZ軸の方向を視覚的に表示
+ * Fixed 3D axis indicator displayed at the bottom-left of the viewport
+ * Follows main camera rotation to show XYZ axis orientations
  */
 import * as THREE from 'three';
 
@@ -18,7 +18,7 @@ export class AxisTriad {
     }
 
     init() {
-        // コンテナ要素を作成
+        // Create container element
         this.container = document.createElement('div');
         this.container.id = 'axis-triad';
         this.container.style.cssText = `
@@ -32,14 +32,14 @@ export class AxisTriad {
         `;
         document.getElementById('canvas-container').appendChild(this.container);
 
-        // 専用のシーンとカメラを作成
+        // Create dedicated scene and camera
         this.scene = new THREE.Scene();
 
-        // 平行投影カメラを使用（遠近感なし）
+        // Use orthographic camera (no perspective)
         this.triadCamera = new THREE.OrthographicCamera(-2, 2, 2, -2, 0.1, 10);
         this.triadCamera.position.set(0, 0, 5);
 
-        // 専用のレンダラーを作成
+        // Create dedicated renderer
         this.renderer = new THREE.WebGLRenderer({
             alpha: true,
             antialias: true
@@ -48,20 +48,20 @@ export class AxisTriad {
         this.renderer.setClearColor(0x000000, 0);
         this.container.appendChild(this.renderer.domElement);
 
-        // 軸を作成
+        // Create axes
         this.createAxes();
 
-        // アニメーションループ
+        // Animation loop
         this.animate();
     }
 
     createAxes() {
-        // 軸の長さ
+        // Axis length
         const axisLength = 1.5;
         const arrowSize = 0.15;
         const labelOffset = 0.3;
 
-        // X軸（赤）
+        // X axis (red)
         const xAxisGeometry = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(axisLength, 0, 0)
@@ -70,7 +70,7 @@ export class AxisTriad {
         const xAxis = new THREE.Line(xAxisGeometry, xAxisMaterial);
         this.scene.add(xAxis);
 
-        // X軸の矢印
+        // X axis arrow
         const xArrowGeometry = new THREE.ConeGeometry(arrowSize / 2, arrowSize * 2, 8);
         const xArrowMaterial = new THREE.MeshBasicMaterial({ color: 0xef4444 });
         const xArrow = new THREE.Mesh(xArrowGeometry, xArrowMaterial);
@@ -78,10 +78,10 @@ export class AxisTriad {
         xArrow.rotation.z = -Math.PI / 2;
         this.scene.add(xArrow);
 
-        // X軸ラベル
+        // X axis label
         this.createLabel('X', axisLength + labelOffset, 0, 0, 0xef4444);
 
-        // Y軸（緑）
+        // Y axis (green)
         const yAxisGeometry = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, axisLength, 0)
@@ -90,17 +90,17 @@ export class AxisTriad {
         const yAxis = new THREE.Line(yAxisGeometry, yAxisMaterial);
         this.scene.add(yAxis);
 
-        // Y軸の矢印
+        // Y axis arrow
         const yArrowGeometry = new THREE.ConeGeometry(arrowSize / 2, arrowSize * 2, 8);
         const yArrowMaterial = new THREE.MeshBasicMaterial({ color: 0x22c55e });
         const yArrow = new THREE.Mesh(yArrowGeometry, yArrowMaterial);
         yArrow.position.set(0, axisLength, 0);
         this.scene.add(yArrow);
 
-        // Y軸ラベル
+        // Y axis label
         this.createLabel('Y', 0, axisLength + labelOffset, 0, 0x22c55e);
 
-        // Z軸（青）
+        // Z axis (blue)
         const zAxisGeometry = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, 0, axisLength)
@@ -109,7 +109,7 @@ export class AxisTriad {
         const zAxis = new THREE.Line(zAxisGeometry, zAxisMaterial);
         this.scene.add(zAxis);
 
-        // Z軸の矢印
+        // Z axis arrow
         const zArrowGeometry = new THREE.ConeGeometry(arrowSize / 2, arrowSize * 2, 8);
         const zArrowMaterial = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
         const zArrow = new THREE.Mesh(zArrowGeometry, zArrowMaterial);
@@ -117,10 +117,10 @@ export class AxisTriad {
         zArrow.rotation.x = Math.PI / 2;
         this.scene.add(zArrow);
 
-        // Z軸ラベル
+        // Z axis label
         this.createLabel('Z', 0, 0, axisLength + labelOffset, 0x3b82f6);
 
-        // 原点の球
+        // Origin sphere
         const originGeometry = new THREE.SphereGeometry(0.08, 16, 16);
         const originMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const origin = new THREE.Mesh(originGeometry, originMaterial);
@@ -128,7 +128,7 @@ export class AxisTriad {
     }
 
     createLabel(text, x, y, z, color) {
-        // テキストスプライトを作成
+        // Create text sprite
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         canvas.width = 64;
@@ -156,7 +156,7 @@ export class AxisTriad {
     }
 
     update() {
-        // メインカメラの回転をコピー
+        // Copy main camera rotation
         if (this.camera) {
             this.triadCamera.rotation.copy(this.camera.rotation);
             this.triadCamera.quaternion.copy(this.camera.quaternion);

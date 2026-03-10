@@ -248,11 +248,11 @@ export class StateManager {
     }
 
     showConfirmationControls() {
-        document.getElementById('confirmationControls').style.display = 'block';
+        // Confirmation controls removed - extrusion confirms on click
     }
 
     hideConfirmationControls() {
-        document.getElementById('confirmationControls').style.display = 'none';
+        // Confirmation controls removed - extrusion confirms on click
     }
 
     startDrawing(startPoint) {
@@ -310,10 +310,9 @@ export class StateManager {
 
     finishExtrusion() {
         if (this.isExtruding && this.selectedSketch && this.selectedSketch.extrudeHeight > 0.1) {
-            this.selectedSketch.setPending();
-            this.pendingExtrusion = this.selectedSketch;
-            this.showConfirmationControls();
-            console.log('Extrusion finished, awaiting confirmation');
+            this.selectedSketch.confirmExtrusion();
+        } else if (this.isExtruding && this.selectedSketch) {
+            this.selectedSketch.cancelExtrusion();
         }
         this.isExtruding = false;
         this.selectedSketch = null;
@@ -346,30 +345,7 @@ export class StateManager {
     }
 
     finishFaceExtrusion() {
-        if (this.isFaceExtruding && this.currentFaceExtrusion && !this.currentFaceExtrusion.isPending) {
-            if (Math.abs(this.currentFaceExtrusion.extrudeDistance) > 0.1) {
-                this.currentFaceExtrusion.isPending = true;
-                if (this.currentFaceExtrusion.newMesh) {
-                    this.currentFaceExtrusion.newMesh.material.color.setHex(0xff9500);
-                    this.currentFaceExtrusion.newMesh.material.opacity = 0.6;
-                }
-                this.showConfirmationControls();
-                console.log('Face extrusion finished, awaiting confirmation');
-                
-                this.isFaceExtruding = false;
-                this.faceExtrudeStartPos = null;
-                return true;
-            } else {
-                if (this.currentFaceExtrusion.newMesh) {
-                    this.currentFaceExtrusion.newMesh.parent.remove(this.currentFaceExtrusion.newMesh);
-                }
-                this.currentFaceExtrusion = null;
-                this.isFaceExtruding = false;
-                this.faceExtrudeStartPos = null;
-                console.log('Face extrusion too small, cancelled');
-                return false;
-            }
-        }
+        // Direct confirm is now handled via InteractionManager -> ExtrusionManager.confirmFaceExtrusion()
         return false;
     }
 

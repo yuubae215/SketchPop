@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SketchPop - 直感的3Dモデリング</title>
+    <title>SketchPop - 3D Modeling</title>
 </head>
 <body>
     <div id="container">
@@ -14,7 +14,7 @@
         <div id="main-layout">
             <div id="left-sidebar">
                 <div class="sidebar-header">
-                    <h3>オブジェクト</h3>
+                    <h3>Objects</h3>
                     <span id="object-count">0</span>
                 </div>
                 <div id="object-list">
@@ -67,84 +67,84 @@
                 <div id="shortcuts-overlay" style="display: none;">
                     <div class="shortcuts-panel">
                         <div class="shortcuts-header">
-                            <h2>キーボードショートカット</h2>
+                            <h2>Keyboard Shortcuts</h2>
                             <button id="close-shortcuts" class="close-btn">×</button>
                         </div>
                         <div class="shortcuts-content">
                             <div class="shortcuts-grid">
                                 <div class="shortcut-section">
-                                    <h3>モード切替</h3>
+                                    <h3>Modes</h3>
                                     <div class="shortcut-item">
                                         <kbd>S</kbd>
-                                        <span>スケッチモード</span>
+                                        <span>Sketch mode</span>
                                     </div>
                                     <div class="shortcut-item">
                                         <kbd>E</kbd>
-                                        <span>押し出しモード</span>
+                                        <span>Extrude mode</span>
                                     </div>
                                     <div class="shortcut-item">
                                         <kbd>V</kbd>
-                                        <span>選択モード</span>
+                                        <span>Select mode</span>
                                     </div>
                                 </div>
 
                                 <div class="shortcut-section">
-                                    <h3>操作</h3>
+                                    <h3>Actions</h3>
                                     <div class="shortcut-item">
                                         <kbd>F</kbd>
-                                        <span>全体を表示</span>
+                                        <span>Fit all objects</span>
                                     </div>
                                     <div class="shortcut-item">
                                         <kbd>Delete</kbd>
-                                        <span>選択オブジェクトを削除</span>
+                                        <span>Delete selected</span>
                                     </div>
                                     <div class="shortcut-item">
                                         <kbd>Esc</kbd>
-                                        <span>キャンセル / 選択解除</span>
+                                        <span>Cancel / Deselect</span>
                                     </div>
                                 </div>
 
                                 <div class="shortcut-section">
-                                    <h3>変形</h3>
+                                    <h3>Transform</h3>
                                     <div class="shortcut-item">
                                         <kbd>G</kbd>
-                                        <span>移動モード</span>
+                                        <span>Move</span>
                                     </div>
                                     <div class="shortcut-item">
                                         <kbd>R</kbd>
-                                        <span>回転モード</span>
+                                        <span>Rotate</span>
                                     </div>
                                     <div class="shortcut-item">
                                         <kbd>Shift + S</kbd>
-                                        <span>スケールモード</span>
+                                        <span>Scale</span>
                                     </div>
                                 </div>
 
                                 <div class="shortcut-section">
-                                    <h3>カメラ操作</h3>
+                                    <h3>Camera</h3>
                                     <div class="shortcut-item">
-                                        <kbd>中ボタン</kbd>
-                                        <span>視点回転</span>
+                                        <kbd>Middle button</kbd>
+                                        <span>Orbit</span>
                                     </div>
                                     <div class="shortcut-item">
-                                        <kbd>Shift + 中ボタン</kbd>
-                                        <span>パン</span>
+                                        <kbd>Shift + Middle</kbd>
+                                        <span>Pan</span>
                                     </div>
                                     <div class="shortcut-item">
-                                        <kbd>ホイール</kbd>
-                                        <span>ズーム</span>
+                                        <kbd>Scroll</kbd>
+                                        <span>Zoom</span>
                                     </div>
                                 </div>
 
                                 <div class="shortcut-section">
-                                    <h3>その他</h3>
+                                    <h3>Other</h3>
                                     <div class="shortcut-item">
                                         <kbd>?</kbd>
-                                        <span>このヘルプを表示/非表示</span>
+                                        <span>Toggle this help</span>
                                     </div>
                                     <div class="shortcut-item">
-                                        <kbd>右クリック</kbd>
-                                        <span>押し出しを確定</span>
+                                        <kbd>Right click</kbd>
+                                        <span>Confirm extrusion</span>
                                     </div>
                                 </div>
                             </div>
@@ -194,41 +194,37 @@
                     </button>
                 </div>
 
-                <div id="confirmationControls" style="display: none; position: absolute; bottom: 20px; left: 20px; z-index: 1000;">
-                    <button id="confirmShape" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; margin-right: 10px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">&#x2713; 確定</button>
-                    <button id="cancelShape" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">&#x2717; キャンセル</button>
-                </div>
             </div>
         </div>
 
         <!-- Status Bar -->
         <div id="status-bar">
             <div class="status-section">
-                <span class="status-label">座標:</span>
+                <span class="status-label">Coords:</span>
                 <span id="cursor-coords">X: 0.0, Y: 0.0, Z: 0.0</span>
             </div>
             <div class="status-divider"></div>
             <div class="status-section">
-                <span class="status-label">モード:</span>
-                <span id="current-mode">スケッチ</span>
+                <span class="status-label">Mode:</span>
+                <span id="current-mode">Sketch</span>
             </div>
             <div class="status-divider"></div>
             <div class="status-section">
-                <span class="status-label">カメラ:</span>
-                <span id="camera-type">透視投影</span>
+                <span class="status-label">Camera:</span>
+                <span id="camera-type">Perspective</span>
             </div>
             <div class="status-divider"></div>
             <div class="status-section">
-                <span class="status-label">オブジェクト:</span>
-                <span id="object-stats">0 個</span>
+                <span class="status-label">Objects:</span>
+                <span id="object-stats">0</span>
             </div>
             <div class="status-divider"></div>
             <div class="status-section">
-                <span class="status-label">選択:</span>
-                <span id="selection-info">なし</span>
+                <span class="status-label">Selected:</span>
+                <span id="selection-info">None</span>
             </div>
             <div class="status-section status-hint">
-                <span id="operation-hint">クリックしてスケッチを開始</span>
+                <span id="operation-hint">Click to start sketch</span>
             </div>
         </div>
     </div>

@@ -89,22 +89,11 @@ export class InteractionManager {
 
         document.getElementById('sidebar-clear').addEventListener('click', () => {
             this.stateManager.clearAll(this.sceneManager);
-            this.stateManager.hideConfirmationControls();
-            console.log('All shapes and states cleared from sidebar');
         });
 
         document.getElementById('sidebar-dimensions').addEventListener('click', () => {
             this.stateManager.toggleDimensions();
             this.updateSidebarIcons();
-        });
-
-        // Confirmation controls
-        document.getElementById('confirmShape').addEventListener('click', () => {
-            this.confirmExtrusion();
-        });
-
-        document.getElementById('cancelShape').addEventListener('click', () => {
-            this.cancelExtrusion();
         });
         
         // Initialize sidebar icons
@@ -191,53 +180,47 @@ export class InteractionManager {
             this.stateManager.currentSketch.setStateManager(this.stateManager);
             const mesh = this.stateManager.currentSketch.createMesh();
             this.sceneManager.addToScene(mesh);
-            console.log('Started sketching at:', intersection);
         } else {
-            this.stateManager.finishDrawing();
+            const completedSketch = this.stateManager.currentSketch;
+            const success = this.stateManager.finishDrawing();
+            if (success && completedSketch) {
+                // Auto-transition: switch to extrude mode and start extruding immediately
+                this.stateManager.setMode('extrude');
+                this.updateSidebarIcons();
+                this.stateManager.startExtrusion(completedSketch, intersection);
+            }
         }
     }
 
     handleExtrudeClick(intersection, event) {
-        console.log('Click in extrude mode. hoveredFace:', this.stateManager.hoveredFace, 'pendingExtrusion:', this.stateManager.pendingExtrusion);
-        
-        // Check if there's already a pending extrusion (orange shape)
-        const hasPendingExtrusion = this.stateManager.pendingExtrusion || 
-                                   (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending);
-        
-        if (hasPendingExtrusion) {
-            console.log('Cannot start new extrusion - there is already a pending extrusion that needs to be confirmed or cancelled');
-            return;
-        }
-        
         // Priority: Face extrusion over sketch extrusion
         if (this.stateManager.hoveredFace && !this.stateManager.isExtruding && !this.stateManager.isFaceExtruding) {
             this.stateManager.startFaceExtrusion(this.stateManager.hoveredFace, intersection);
-            console.log('Started face extrusion on face with normal:', this.stateManager.hoveredFace.face.normal);
-        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion && !this.stateManager.currentFaceExtrusion.isPending) {
-            this.stateManager.finishFaceExtrusion();
+        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
+            // Direct confirm face extrusion on click
+            if (Math.abs(this.stateManager.currentFaceExtrusion.extrudeDistance) > 0.1) {
+                this.extrusionManager.confirmFaceExtrusion();
+            } else {
+                this.extrusionManager.cancelFaceExtrusion();
+            }
+            this.clearSketchExtrusionDimensions();
         } else {
-            // Fall back to regular sketch extrusion
             this.handleRegularExtrudeClick(intersection);
         }
     }
 
     handleRegularExtrudeClick(intersection) {
-        // Check if there's already a pending extrusion (orange shape)
-        const hasPendingExtrusion = this.stateManager.pendingExtrusion || 
-                                   (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending);
-        
         if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            // Direct confirm on click
             this.stateManager.finishExtrusion();
-        } else if (!hasPendingExtrusion) {
+            this.clearSketchExtrusionDimensions();
+        } else {
             for (let sketch of this.stateManager.sketches) {
                 if (!sketch.isExtruded && sketch.containsPoint(intersection)) {
                     this.stateManager.startExtrusion(sketch, intersection);
-                    console.log('Started extruding sketch:', sketch);
                     break;
                 }
             }
-        } else {
-            console.log('Cannot start new extrusion - there is already a pending extrusion that needs to be confirmed or cancelled');
         }
     }
 
@@ -289,8 +272,17 @@ export class InteractionManager {
 
     onRightClick(event) {
         event.preventDefault();
-        if (this.stateManager.pendingExtrusion || (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending)) {
-            this.confirmExtrusion();
+        // Right-click also confirms active extrusion
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            this.stateManager.finishExtrusion();
+            this.clearSketchExtrusionDimensions();
+        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
+            if (Math.abs(this.stateManager.currentFaceExtrusion.extrudeDistance) > 0.1) {
+                this.extrusionManager.confirmFaceExtrusion();
+            } else {
+                this.extrusionManager.cancelFaceExtrusion();
+            }
+            this.clearSketchExtrusionDimensions();
         }
     }
 
@@ -333,10 +325,9 @@ export class InteractionManager {
                 this.sceneManager.fitAllObjects();
                 break;
             case 'escape':
-                if (this.stateManager.pendingExtrusion || this.stateManager.currentFaceExtrusion) {
+                if (this.stateManager.isExtruding || this.stateManager.isFaceExtruding) {
                     this.cancelExtrusion();
                 } else {
-                    // Detach transform controls on escape
                     this.transformManager.detachFromObject();
                 }
                 break;
@@ -352,36 +343,23 @@ export class InteractionManager {
     }
 
     confirmExtrusion() {
-        if (this.stateManager.pendingExtrusion) {
-            this.stateManager.pendingExtrusion.confirmExtrusion();
-            this.stateManager.pendingExtrusion = null;
-            this.stateManager.selectedSketch = null;
-            this.stateManager.isExtruding = false;
-            this.stateManager.extrudeStartPos = null;
-            this.stateManager.hideConfirmationControls();
-            console.log('Shape confirmed via right-click');
-        } else if (this.stateManager.currentFaceExtrusion && this.stateManager.currentFaceExtrusion.isPending) {
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            this.stateManager.finishExtrusion();
+        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
             this.extrusionManager.confirmFaceExtrusion();
         }
-        
-        // Clear sketch extrusion dimensions
         this.clearSketchExtrusionDimensions();
     }
 
     cancelExtrusion() {
-        if (this.stateManager.pendingExtrusion) {
-            this.stateManager.pendingExtrusion.cancelExtrusion();
-            this.stateManager.pendingExtrusion = null;
-            this.stateManager.selectedSketch = null;
+        if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
+            this.stateManager.selectedSketch.cancelExtrusion();
             this.stateManager.isExtruding = false;
+            this.stateManager.selectedSketch = null;
             this.stateManager.extrudeStartPos = null;
-            this.stateManager.hideConfirmationControls();
-            console.log('Shape cancelled via ESC');
-        } else if (this.stateManager.currentFaceExtrusion) {
+        } else if (this.stateManager.isFaceExtruding) {
             this.extrusionManager.cancelFaceExtrusion();
         }
-        
-        // Clear sketch extrusion dimensions
         this.clearSketchExtrusionDimensions();
     }
 
