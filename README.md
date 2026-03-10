@@ -1,238 +1,134 @@
-# SketchPop - 直感的3Dモデリング
+# SketchPop - Intuitive 3D Modeling
 
-直感的な操作で2Dスケッチから3Dモデルを作成できるWebベースの3Dモデリングアプリケーション。Three.jsを使用して実装されています。
+A web-based 3D modeling application that creates 3D models from 2D sketches using an intuitive sketch-and-extrude workflow. Built with Three.js and Vite.
 
-## 概要
+**Live Demo:** https://yuubae215.github.io/SketchPop/
 
-SketchPopは、シンプルな2Dスケッチから始めて、押し出し操作で3Dモデルを作成する直感的なモデリングツールです。CADソフトウェアの基本的なスケッチ＆押し出し機能をWebブラウザで体験できます。
+## Overview
 
-## 主な機能
+SketchPop lets you start with simple 2D rectangle sketches on a ground plane and extrude them into 3D shapes — bringing the core sketch-and-extrude experience of CAD software to the browser.
 
-### 🎯 スケッチ機能
-- 地平面上での2D矩形スケッチ
-- クリック&ドラッグによる直感的な描画
-- リアルタイムプレビュー
+## Features
 
-### 📦 押し出し機能
-- 2Dスケッチからの3D押し出し
-- 立方体の面からの追加押し出し
-- マウス移動による高さ調整
-- オレンジ色での仮確定表示
+### Sketch
+- Draw 2D rectangles on the ground plane
+- Click-and-drag for intuitive creation
+- Real-time preview while drawing
 
-### 🎮 インタラクティブ操作
-- 右クリックまたは✓ボタンで確定
-- ESCキーまたは✗ボタンでキャンセル
-- 中クリック&ドラッグで視点変更
-- ホイールでズーム操作
+### Extrude
+- Extrude 2D sketches into 3D shapes
+- Extrude additional faces from existing solid faces
+- Adjust height by moving the mouse
+- Orange preview during pending confirmation
 
-## 使用方法
+### Interaction
+- Right-click or ✓ button to confirm
+- ESC or ✗ button to cancel
+- Middle-click drag to orbit the camera
+- Scroll wheel to zoom
 
-### セットアップ
+### Transform
+- Move, rotate, and scale confirmed objects
+- Visual transform handles
+
+## Getting Started
 
 ```bash
-# 依存関係のインストール
+# Install dependencies
 npm install
+# or
+pnpm install
 
-# 開発サーバーの起動
+# Start development server
 npm run dev
 
-# または手動でローカルサーバーを起動
-python -m http.server 8000
-# または
-npx serve dist
-
-# ブラウザでアクセス
-open http://localhost:8080  # npm run dev の場合
-# または
-open http://localhost:8000  # 手動サーバーの場合
+# Open in browser
+open http://localhost:5173/SketchPop/
 ```
 
-### 操作手順
+### Build
 
-#### 1. スケッチモード
-1. 地平面上で1回目クリック：開始点を設定
-2. マウス移動：矩形をプレビュー
-3. 2回目クリック：終了点を設定して矩形完成
+```bash
+npm run build    # Output to dist/
+npm run preview  # Preview the built output
+```
 
-#### 2. 押し出しモード
-1. 形状を1回目クリック：押し出し開始
-2. マウス移動：高さ調整
-3. 2回目クリック：オレンジ色で仮確定
+## Usage
 
-#### 3. 確定・キャンセル
-- **確定**: 右クリック または ✓ボタン
-- **キャンセル**: ESCキー または ✗ボタン
+### 1. Sketch Mode
+1. Click once on the ground plane to set the start point
+2. Move the mouse to preview the rectangle
+3. Click again to finalize the rectangle
 
-#### 4. 面の押し出し
-- 確定済み立方体の面にマウスホバー：面がハイライト
-- 面をクリック：その面からの押し出し開始
-- 右クリックで確定
+### 2. Extrude Mode
+1. Click on a sketch shape to start extruding
+2. Move the mouse to adjust height
+3. Click again to confirm with orange preview
 
-## 技術的特徴
+### 3. Confirm / Cancel
+- **Confirm**: Right-click or ✓ button
+- **Cancel**: ESC key or ✗ button
 
-### アーキテクチャ
-- **フロントエンド**: Three.js r128 + ES6モジュール
-- **レンダリング**: WebGLベースの3Dレンダリング
-- **制御**: OrbitControls による3D視点操作
-- **設計パターン**: 単一責任の法則に基づくモジュラー設計
-- **状態管理**: 集中化されたStateManager
-- **イベント処理**: InteractionManagerによる統合管理
-- **ビルドシステム**: Webpack + npm scripts
-- **開発環境**: webpack-dev-server によるホットリロード
+### 4. Face Extrusion
+- Hover over a face of a confirmed solid to highlight it
+- Click the face to start extruding from it
+- Right-click to confirm
 
-### 実装の特徴
-- **モジュラー設計**: 各クラスが単一の責任を持つ
-- **状態管理**: StateManagerによる集中管理
-- **面検出**: ExtrusionManagerでのRaycasting処理
-- **視覚フィードバック**: 色とオパシティによる状態表示
-- **インタラクション**: InteractionManagerによる統一されたイベント処理
-- **シーン管理**: SceneManagerによるThree.jsの抽象化
-- **ハンドラー層**: 機能別に分離されたイベント処理
-- **ユーティリティ層**: 再利用可能な共通処理
-- **変形機能**: TransformManagerによる移動・スケール操作
+## Tech Stack
 
-## ファイル構成
+- **Three.js** v0.178+ — 3D rendering
+- **Vite** v6+ — build tool and dev server
+- **ES6 modules** — modular architecture
+- **WebGL** — hardware-accelerated rendering
+
+## File Structure
 
 ```
-sketchpop/
+SketchPop/
 ├── src/
-│   ├── index.html            # メインHTML（UIレイアウト）
-│   ├── index.js              # メインアプリケーション（エントリーポイント）
-│   ├── styles.css            # スタイルシート
-│   ├── SceneManager.js       # Three.jsシーン管理
-│   ├── StateManager.js       # アプリケーション状態管理
-│   ├── InteractionManager.js # マウス・キーボードイベント処理
-│   ├── ExtrusionManager.js   # 押し出し機能とフェイス処理
-│   ├── SketchRectangle.js    # 矩形スケッチクラス
-│   ├── SelectionManager.js   # オブジェクト選択管理
-│   ├── ObjectListManager.js  # オブジェクトリスト管理
-│   ├── TransformManager.js   # 変形・移動管理
+│   ├── index.html              # Main HTML (UI layout)
+│   ├── index.js                # Application entry point
+│   ├── styles.css              # Stylesheet
+│   ├── SceneManager.js         # Three.js scene, camera, renderer, lighting
+│   ├── StateManager.js         # Application state and mode switching
+│   ├── InteractionManager.js   # Mouse and keyboard event handling
+│   ├── ExtrusionManager.js     # Extrusion logic and face detection
+│   ├── SelectionManager.js     # Object selection management
+│   ├── ObjectListManager.js    # Sidebar object list
+│   ├── TransformManager.js     # Move / rotate / scale with handles
+│   ├── StatusBarManager.js     # Status bar display
+│   ├── SketchRectangle.js      # Rectangle sketch and extrusion
+│   ├── CustomExtruder.js       # Manual geometry generation (per-face vertices)
+│   ├── Box.js                  # Confirmed solid mesh
+│   ├── Rectangle.js            # Base rectangle class
+│   ├── ViewCube.js             # 3D navigation cube
+│   ├── AxisTriad.js            # X/Y/Z axis indicator
 │   ├── handlers/
-│   │   ├── domHandlers.js    # DOM操作ハンドラー
-│   │   ├── selectionHandler.js # 選択処理ハンドラー
-│   │   ├── stateHandler.js   # 状態管理ハンドラー
-│   │   ├── threeHandlers.js  # Three.js操作ハンドラー
-│   │   └── transformHandler.js # 変形処理ハンドラー
+│   │   ├── domHandlers.js      # DOM event handlers
+│   │   ├── selectionHandler.js # Selection event handlers
+│   │   ├── stateHandler.js     # State change handlers
+│   │   ├── threeHandlers.js    # Three.js object handlers
+│   │   └── transformHandler.js # Transform operation handlers
 │   └── utils/
-│       ├── domUtils.js       # DOM操作ユーティリティ
-│       ├── geometry.js       # 幾何学計算ユーティリティ
-│       ├── selectionUtils.js # 選択操作ユーティリティ
-│       ├── stateUtils.js     # 状態管理ユーティリティ
-│       └── threeUtils.js     # Three.js操作ユーティリティ
-├── dist/                     # ビルド済みファイル
-├── node_modules/             # 依存関係
-├── package.json              # パッケージ設定
-├── package-lock.json         # パッケージロック
-├── webpack.config.js         # Webpackビルド設定
-├── README.md                 # プロジェクト概要（本ファイル）
-├── API_REFERENCE.md          # API リファレンス
-├── CLAUDE.md                 # Claude Code用ガイダンス
-└── REFACTORING_PROGRESS.md   # リファクタリング進捗記録
+│       ├── domUtils.js         # DOM utilities
+│       ├── geometry.js         # Geometry math utilities
+│       ├── selectionUtils.js   # Selection utilities
+│       ├── stateUtils.js       # State utilities
+│       └── threeUtils.js       # Three.js utilities
+├── vite.config.js              # Vite config (base: /SketchPop/, root: src)
+├── package.json
+├── pnpm-lock.yaml
+├── README.md
+├── CLAUDE.md                   # Guidance for Claude Code
+└── API_REFERENCE.md            # API reference
 ```
 
-## ブラウザ要件
+## Browser Requirements
 
-- モダンブラウザ（Chrome, Firefox, Safari, Edge）
-- WebGL サポート
-- ES6+ JavaScript サポート（モジュール対応）
+- Modern browser (Chrome, Firefox, Safari, Edge)
+- WebGL support
+- ES6+ with module support
 
-## 開発の特徴
+## License
 
-### 単一責任の法則（SRP）の適用
-各モジュールは明確に定義された単一の責任を持ちます：
-
-- **SceneManager**: Three.jsシーンの管理のみ
-- **StateManager**: アプリケーション状態の管理のみ
-- **InteractionManager**: ユーザーインタラクションの処理のみ
-- **ExtrusionManager**: 押し出し機能と面処理のみ
-- **SketchRectangle**: 矩形スケッチの機能のみ
-
-### モジュラー設計の利点
-- **保守性**: 各機能が独立しているため、バグ修正や機能追加が容易
-- **テスト性**: 個別のモジュールを独立してテスト可能
-- **再利用性**: 他のプロジェクトでもモジュールを再利用可能
-- **可読性**: コードの構造が明確で理解しやすい
-
-## 開発のポイント
-
-### 最近の修正
-- ✅ **リファクタリング完了**: 単一責任の法則を適用したモジュラー設計
-- ✅ **SceneManager**: Three.jsシーン管理の完全分離
-- ✅ **StateManager**: アプリケーション状態の集中管理
-- ✅ **InteractionManager**: 全イベント処理の統合化
-- ✅ **ExtrusionManager**: 押し出し・面処理機能の専門化
-- ✅ **SketchRectangle**: 矩形スケッチクラスの独立化
-- ✅ **アーキテクチャ**: ES6モジュールシステムの完全活用
-
-### 実装済み機能
-- 2Dスケッチから3D押し出し
-- 立方体の面からの追加押し出し
-- 直感的なマウス操作
-- 状態に応じた視覚フィードバック
-- 完全な確定・キャンセル機能
-
-### モジュール構成
-
-#### SceneManager.js
-- Three.jsシーンの初期化と管理
-- カメラ、レンダラー、ライティングの設定
-- OrbitControlsの設定
-- ウィンドウリサイズ対応
-- 透視投影・平行投影カメラの切り替え
-
-#### StateManager.js
-- アプリケーション全体の状態管理
-- スケッチモード/押し出しモードの切り替え
-- スケッチコレクションの管理
-- UI更新とコントロール表示
-
-#### InteractionManager.js
-- マウス・キーボードイベントの統合処理
-- クリック、マウス移動、キー入力の管理
-- UIコントロールのイベントリスナー設定
-- 各モードでの適切なアクション振り分け
-
-#### ExtrusionManager.js
-- 面のハイライト表示機能
-- 面の押し出し処理
-- Raycastingによる面検出
-- 既存形状との統合処理
-
-#### SketchRectangle.js
-- 矩形スケッチの作成・更新
-- 3D押し出し処理
-- 色とオパシティによる状態表示
-- 確定・キャンセル機能
-
-#### SelectionManager.js
-- オブジェクトの選択・選択解除
-- 選択状態の視覚的フィードバック
-- 複数オブジェクトの管理
-
-#### ObjectListManager.js
-- サイドバーのオブジェクトリスト管理
-- オブジェクトの表示切替
-- リスト項目の動的更新
-
-#### TransformManager.js
-- オブジェクトの移動・回転・スケール
-- ハンドル表示とドラッグ操作
-- 変形モードの切り替え
-
-#### handlers/ ディレクトリ
-- **domHandlers.js**: DOM要素の操作とイベント処理
-- **selectionHandler.js**: オブジェクト選択に関する処理
-- **stateHandler.js**: アプリケーション状態の変更処理
-- **threeHandlers.js**: Three.jsオブジェクトの操作処理
-- **transformHandler.js**: 変形操作の具体的な処理
-
-#### utils/ ディレクトリ
-- **domUtils.js**: DOM操作の共通処理
-- **geometry.js**: 幾何学計算（距離、角度、面積など）
-- **selectionUtils.js**: 選択操作の共通処理
-- **stateUtils.js**: 状態管理の共通処理
-- **threeUtils.js**: Three.jsの共通操作
-
-## ライセンス
-
-このプロジェクトは教育・学習目的で作成されています。
+This project is created for educational and learning purposes.
