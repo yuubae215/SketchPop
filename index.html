@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SketchPop - 直感的3Dモデリング</title>
+</head>
+<body>
+    <div id="container">
+        <header>
+            <h1>SketchPop</h1>
+        </header>
+
+        <div id="main-layout">
+            <div id="left-sidebar">
+                <div class="sidebar-header">
+                    <h3>オブジェクト</h3>
+                    <span id="object-count">0</span>
+                </div>
+                <div id="object-list">
+                    <!-- Object hierarchy will be populated here -->
+                </div>
+            </div>
+
+            <div id="canvas-container">
+                <!-- Selection Mode Toggle Card -->
+                <div id="selection-toggle">
+                    <button id="object-select-btn" class="selection-btn active" title="Object Selection">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 2h16c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2z" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1"/>
+                            <path d="M9 2v20M15 2v20" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                    </button>
+                    <button id="face-select-btn" class="selection-btn" title="Face Selection">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Projection Toggle Card -->
+                <div id="projection-toggle">
+                    <button id="perspective-btn" class="projection-btn active" title="Perspective Projection">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                        </svg>
+                        <span>P</span>
+                    </button>
+                    <button id="orthographic-btn" class="projection-btn" title="Orthographic Projection">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/>
+                            <path d="M7 7h10v10H7V7z"/>
+                        </svg>
+                        <span>O</span>
+                    </button>
+                </div>
+
+                <!-- Home Button -->
+                <button id="home-btn" class="home-btn" title="Fit All Objects (F)">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/>
+                    </svg>
+                </button>
+
+                <!-- Keyboard Shortcuts Overlay -->
+                <div id="shortcuts-overlay" style="display: none;">
+                    <div class="shortcuts-panel">
+                        <div class="shortcuts-header">
+                            <h2>キーボードショートカット</h2>
+                            <button id="close-shortcuts" class="close-btn">×</button>
+                        </div>
+                        <div class="shortcuts-content">
+                            <div class="shortcuts-grid">
+                                <div class="shortcut-section">
+                                    <h3>モード切替</h3>
+                                    <div class="shortcut-item">
+                                        <kbd>S</kbd>
+                                        <span>スケッチモード</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>E</kbd>
+                                        <span>押し出しモード</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>V</kbd>
+                                        <span>選択モード</span>
+                                    </div>
+                                </div>
+
+                                <div class="shortcut-section">
+                                    <h3>操作</h3>
+                                    <div class="shortcut-item">
+                                        <kbd>F</kbd>
+                                        <span>全体を表示</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Delete</kbd>
+                                        <span>選択オブジェクトを削除</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Esc</kbd>
+                                        <span>キャンセル / 選択解除</span>
+                                    </div>
+                                </div>
+
+                                <div class="shortcut-section">
+                                    <h3>変形</h3>
+                                    <div class="shortcut-item">
+                                        <kbd>G</kbd>
+                                        <span>移動モード</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>R</kbd>
+                                        <span>回転モード</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Shift + S</kbd>
+                                        <span>スケールモード</span>
+                                    </div>
+                                </div>
+
+                                <div class="shortcut-section">
+                                    <h3>カメラ操作</h3>
+                                    <div class="shortcut-item">
+                                        <kbd>中ボタン</kbd>
+                                        <span>視点回転</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Shift + 中ボタン</kbd>
+                                        <span>パン</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>ホイール</kbd>
+                                        <span>ズーム</span>
+                                    </div>
+                                </div>
+
+                                <div class="shortcut-section">
+                                    <h3>その他</h3>
+                                    <div class="shortcut-item">
+                                        <kbd>?</kbd>
+                                        <span>このヘルプを表示/非表示</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>右クリック</kbd>
+                                        <span>押し出しを確定</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operation Icons Card -->
+                <div id="right-sidebar">
+                    <button id="sidebar-sketch" class="sidebar-icon active" title="Sketch Mode">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                        <span class="sidebar-tooltip">Sketch</span>
+                    </button>
+
+                    <button id="sidebar-extrude" class="sidebar-icon" title="Extrude Mode">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            <path d="M12 8v8m-4-4h8" stroke="currentColor" stroke-width="1" fill="none"/>
+                        </svg>
+                        <span class="sidebar-tooltip">Extrude</span>
+                    </button>
+
+                    <button id="sidebar-select" class="sidebar-icon" title="Select Mode">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/>
+                            <path d="M8 8h8v8H8V8z" fill="none" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                        <span class="sidebar-tooltip">Select</span>
+                    </button>
+
+
+                    <button id="sidebar-dimensions" class="sidebar-icon active" title="Toggle Dimensions">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 7h2v2H3V7zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/>
+                            <path d="M19 3v2l-2-1 2-1zm0 18v-2l-2 1 2 1z" stroke="currentColor" stroke-width="1" fill="none"/>
+                        </svg>
+                        <span class="sidebar-tooltip">Dimensions</span>
+                    </button>
+
+                    <button id="sidebar-clear" class="sidebar-icon" title="Clear All">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        <span class="sidebar-tooltip">Clear All</span>
+                    </button>
+                </div>
+
+                <div id="confirmationControls" style="display: none; position: absolute; bottom: 20px; left: 20px; z-index: 1000;">
+                    <button id="confirmShape" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; margin-right: 10px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">&#x2713; 確定</button>
+                    <button id="cancelShape" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">&#x2717; キャンセル</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div id="status-bar">
+            <div class="status-section">
+                <span class="status-label">座標:</span>
+                <span id="cursor-coords">X: 0.0, Y: 0.0, Z: 0.0</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">モード:</span>
+                <span id="current-mode">スケッチ</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">カメラ:</span>
+                <span id="camera-type">透視投影</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">オブジェクト:</span>
+                <span id="object-stats">0 個</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span class="status-label">選択:</span>
+                <span id="selection-info">なし</span>
+            </div>
+            <div class="status-section status-hint">
+                <span id="operation-hint">クリックしてスケッチを開始</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/index.js"></script>
+</body>
+</html>
