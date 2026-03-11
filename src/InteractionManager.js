@@ -15,6 +15,10 @@ import { HistoryPanelManager } from './HistoryPanelManager.js';
 import { DisplayModeManager } from './DisplayModeManager.js';
 import { ContextMenuManager } from './ContextMenuManager.js';
 import { MeasurementManager } from './MeasurementManager.js';
+import { BoxSelectManager } from './BoxSelectManager.js';
+import { EdgeSelectionManager } from './EdgeSelectionManager.js';
+import { FilletManager } from './FilletManager.js';
+import { BooleanManager } from './BooleanManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -59,6 +63,19 @@ export class InteractionManager {
         this.contextMenuManager = new ContextMenuManager();
         this._setupContextMenuCallbacks();
         this.measurementManager = new MeasurementManager(sceneManager, stateManager);
+
+        // Plasticity-inspired sprint
+        this.boxSelectManager = new BoxSelectManager(sceneManager, stateManager);
+        this.boxSelectManager.init(this.sceneManager.renderer.domElement);
+        this.boxSelectManager.onBoxSelect = (meshes, additive) => this._onBoxSelect(meshes, additive);
+
+        this.edgeSelectionManager = new EdgeSelectionManager(sceneManager, stateManager);
+
+        this.filletManager = new FilletManager(sceneManager, stateManager);
+        this.booleanManager = new BooleanManager(sceneManager, stateManager);
+
+        // Track second selected object for boolean ops
+        this._secondSelectedObject = null;
     }
 
     setupEventListeners() {
@@ -185,6 +202,31 @@ export class InteractionManager {
             document.addEventListener('click', () => exportMenu.classList.remove('open'));
         }
 
+        // Edge select toggle button
+        const edgeBtn = document.getElementById('top-edge-select');
+        if (edgeBtn) edgeBtn.addEventListener('click', () => this._toggleEdgeSelect());
+
+        // Boolean / fillet dropdown
+        const boolBtn  = document.getElementById('top-boolean');
+        const boolMenu = document.getElementById('boolean-menu');
+        if (boolBtn && boolMenu) {
+            boolBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                boolMenu.classList.toggle('open');
+            });
+            boolMenu.querySelectorAll('[data-bool]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    boolMenu.classList.remove('open');
+                    const op = item.dataset.bool;
+                    if (op === 'fillet')  this._handleFillet(0.2);
+                    else if (op === 'chamfer') this._handleChamfer(0.15);
+                    else this._handleBoolean(op);
+                });
+            });
+            document.addEventListener('click', () => boolMenu.classList.remove('open'));
+        }
+
         // Initialize icons
         this.updateSidebarIcons();
     }
@@ -223,6 +265,12 @@ export class InteractionManager {
     onClick(event) {
         event.preventDefault();
         event.stopPropagation();
+
+        // Edge selection click
+        if (this.edgeSelectionManager && this.edgeSelectionManager.enabled) {
+            this.edgeSelectionManager.onClick(event);
+            return;
+        }
 
         if (this.transformManager.isTransformActive()) return;
 
@@ -452,6 +500,11 @@ export class InteractionManager {
         } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion && this.stateManager.faceExtrudeStartPos && !this.stateManager.currentFaceExtrusion.isPending) {
             event.preventDefault();
             this.extrusionManager.updateFaceExtrusion(event);
+        }
+
+        // Edge selection hover
+        if (this.edgeSelectionManager && this.edgeSelectionManager.enabled) {
+            this.edgeSelectionManager.onMouseMove(event);
         }
 
         // Always update face highlight (enables context-sensitive cursor)
@@ -803,7 +856,8 @@ export class InteractionManager {
                 break;
         }
 
-        if (this.transformManager.isTransformActive()) {
+        // Transform shortcuts: active when object is attached (not just during drag)
+        if (this.transformManager.currentTransformObject) {
             this.transformManager.handleKeyboardShortcut(event.key);
         }
     }
@@ -1142,6 +1196,113 @@ export class InteractionManager {
         }
     }
 
+    // ── Box selection callback ────────────────────────────────────────────
+
+    _onBoxSelect(meshes, additive) {
+        if (meshes.length === 0) {
+            if (!additive) {
+                this.selectionManager.deselectAll();
+                this.stateManager.clearSelections();
+                this.propertyPanelManager.hide();
+                this.transformManager.detachFromObject();
+                this._secondSelectedObject = null;
+            }
+            return;
+        }
+
+        if (!additive) {
+            this.selectionManager.deselectAll();
+            this.stateManager.clearSelections();
+            this._secondSelectedObject = null;
+        }
+
+        // Select first mesh as primary, track second for boolean ops
+        for (let i = 0; i < meshes.length; i++) {
+            const mesh = meshes[i];
+            if (i === 0) {
+                this._contextSelectObject(mesh, null);
+            } else if (i === 1) {
+                // Highlight second without full context-switch
+                this._secondSelectedObject = mesh;
+                this.selectionManager.setHoveredObject(mesh);
+            }
+        }
+
+        if (meshes.length > 1) {
+            ToastManager.show(`${meshes.length} objects selected — use Boolean ops`, 'info');
+        }
+    }
+
+    // ── Fillet / Chamfer ──────────────────────────────────────────────────
+
+    _handleFillet(amount = 0.2) {
+        const sel = this.stateManager.selectedObject;
+        if (!sel) { ToastManager.show('Select an object first', 'warning'); return; }
+        const sketch = sel.userData?.sketchRectangle;
+        if (!sketch) return;
+
+        if (this.filletManager.hasOperation(sketch)) {
+            this.filletManager.reset(sketch);
+            ToastManager.show('Fillet removed', 'info');
+        } else {
+            const ok = this.filletManager.fillet(sketch, amount);
+            if (ok) ToastManager.show(`Fillet r=${amount}`, 'success');
+        }
+    }
+
+    _handleChamfer(amount = 0.15) {
+        const sel = this.stateManager.selectedObject;
+        if (!sel) { ToastManager.show('Select an object first', 'warning'); return; }
+        const sketch = sel.userData?.sketchRectangle;
+        if (!sketch) return;
+
+        if (this.filletManager.hasOperation(sketch)) {
+            this.filletManager.reset(sketch);
+            ToastManager.show('Chamfer removed', 'info');
+        } else {
+            const ok = this.filletManager.chamfer(sketch, amount);
+            if (ok) ToastManager.show(`Chamfer c=${amount}`, 'success');
+        }
+    }
+
+    // ── Boolean operations ────────────────────────────────────────────────
+
+    _handleBoolean(type) {
+        const meshA = this.stateManager.selectedObject;
+        const meshB = this._secondSelectedObject;
+
+        if (!meshA || !meshB) {
+            ToastManager.show('Box-select 2 objects first (Shift+drag for 2nd)', 'warning');
+            return;
+        }
+
+        const sketchA = meshA.userData?.sketchRectangle;
+        const sketchB = meshB.userData?.sketchRectangle;
+        const result = this.booleanManager.operate(type, sketchA, sketchB);
+
+        if (result) {
+            this._secondSelectedObject = null;
+            this._contextSelectObject(result, null);
+            this.projectManager.triggerAutoSave();
+        }
+    }
+
+    // ── Edge select toggle ─────────────────────────────────────────────────
+
+    _toggleEdgeSelect() {
+        if (this.edgeSelectionManager.enabled) {
+            this.edgeSelectionManager.disable();
+            const btn = document.getElementById('top-edge-select');
+            if (btn) btn.classList.remove('active');
+            ToastManager.show('Edge select: OFF', 'info');
+        } else {
+            this.edgeSelectionManager.enable();
+            const btn = document.getElementById('top-edge-select');
+            if (btn) btn.classList.add('active');
+            ToastManager.show('Edge select: ON — hover edges, click to select', 'info');
+        }
+    }
+
     // ── Grid snap ─────────────────────────────────────────────────────────
 
     _toggleGridSnap() {
@@ -1286,6 +1447,19 @@ export class InteractionManager {
             { id: 'measure-distance', label: 'Measure: Distance',  shortcut: 'M',   action: () => { im.measurementManager.setMode('distance'); const b = document.getElementById('top-measure'); if(b) b.classList.add('active'); ToastManager.show('Measurement: Distance', 'info'); } },
             { id: 'measure-area',     label: 'Measure: Face Area',  shortcut: '',    action: () => { im.measurementManager.setMode('area'); const b = document.getElementById('top-measure'); if(b) b.classList.add('active'); ToastManager.show('Measurement: Face Area', 'info'); } },
             { id: 'measure-clear',    label: 'Clear measurements',  shortcut: '',    action: () => { im.measurementManager.clearAll(); im.measurementManager.setMode('off'); const b = document.getElementById('top-measure'); if(b) b.classList.remove('active'); ToastManager.show('Measurements cleared', 'info'); } },
+
+            // ── Plasticity features ──
+            { id: 'edge-select-toggle', label: 'Toggle edge select', shortcut: '',  action: () => im._toggleEdgeSelect() },
+            { id: 'fillet-default',     label: 'Fillet top edges (r=0.2)', shortcut: '', action: () => im._handleFillet(0.2) },
+            { id: 'chamfer-default',    label: 'Chamfer top edges (c=0.15)', shortcut: '', action: () => im._handleChamfer(0.15) },
+            { id: 'bool-union',         label: 'Boolean: Union',      shortcut: '',  action: () => im._handleBoolean('union') },
+            { id: 'bool-difference',    label: 'Boolean: Difference', shortcut: '',  action: () => im._handleBoolean('difference') },
+            { id: 'bool-intersect',     label: 'Boolean: Intersect',  shortcut: '',  action: () => im._handleBoolean('intersect') },
+
+            // ── Axis constraints (shown in palette for discoverability) ──
+            { id: 'axis-x', label: 'Axis lock: X  (during transform)', shortcut: 'X', action: () => { if(im.transformManager.currentTransformObject) im.transformManager._toggleAxisConstraint('x'); else ToastManager.show('Select an object first', 'warning'); } },
+            { id: 'axis-y', label: 'Axis lock: Y  (during transform)', shortcut: 'Y', action: () => { if(im.transformManager.currentTransformObject) im.transformManager._toggleAxisConstraint('y'); else ToastManager.show('Select an object first', 'warning'); } },
+            { id: 'axis-z', label: 'Axis lock: Z  (during transform)', shortcut: 'Z', action: () => { if(im.transformManager.currentTransformObject) im.transformManager._toggleAxisConstraint('z'); else ToastManager.show('Select an object first', 'warning'); } },
         ]);
     }
 }
