@@ -41,6 +41,29 @@ Covers both sketch extrusion and face extrusion.
 - `3` → Right view
 - `7` → Top view
 
+### [DONE] Redo (`Ctrl+Y` / `Ctrl+Shift+Z`) — Sprint 2026-03-11
+`CommandManager.redo()` fully implemented. All command types (AddSketch, Extrude, Delete, FaceExtrude) support both undo and redo. Redo stack is cleared on any new action.
+
+### [DONE] Property panel (right slide-in panel) — Sprint 2026-03-11
+Selecting any extruded object slides in a panel from the right showing:
+- **Name** (object type)
+- **Position** X / Y / Z — editable, moves the mesh live
+- **Dimensions** W × D (read-only) and H (editable, re-extrudes)
+
+Implemented in `PropertyPanelManager.js`. Shown on click-select, hidden on Escape or deselect. Updates during TransformControls drag.
+
+### [DONE] Context-sensitive operations (mode-free interaction) — Sprint 2026-03-11
+All clicks are now context-aware regardless of active mode:
+
+| What's under cursor | Action on click |
+|---|---|
+| Empty ground plane | Start sketch |
+| Unextruded 2D sketch | Start extrusion |
+| Extruded face (highlighted) | Start face extrusion |
+| Extruded object body | Select + show property panel |
+
+Face highlight shown in all modes (not only extrude mode). Cursor shape reflects context (crosshair / ns-resize / pointer / grab). Mode buttons remain for explicit overrides.
+
 ---
 
 ## Backlog
@@ -49,41 +72,6 @@ Covers both sketch extrusion and face extrusion.
 🔴 High — blocks common workflows
 🟠 Medium — noticeable UX gap
 🟢 Low — polish / power-user feature
-
----
-
-### 🔴 [TODO] Context-sensitive operations (mode-free interaction)
-
-Replace explicit mode switching with context-aware behavior:
-
-| Hover / Click target | Action |
-|---|---|
-| Empty ground plane | Start sketch directly |
-| Unextruded sketch | Show extrude handle |
-| Extruded face | Show face-extrude handle |
-| Extruded object body | Show move/rotate gizmo |
-
-Mode buttons become secondary/optional.
-Reference: Onshape, Fusion 360.
-
----
-
-### 🔴 [TODO] Property panel (right slide-in panel)
-
-Show selected object's properties in a panel that slides in on selection:
-- **Transform**: position (X, Y, Z), rotation, scale — numeric input fields
-- **Dimensions**: W × D × H with live update on input
-- **Appearance**: color picker, opacity slider
-- **Info**: name, type
-
-Replaces the need to use TransformControls gizmo for precise values.
-Reference: Fusion 360 right panel, Blender N-panel.
-
----
-
-### 🔴 [TODO] Redo (`Ctrl+Y` / `Ctrl+Shift+Z`)
-
-`CommandManager.redo()` stub already exists; implement the re-execution path so that undone commands can be reapplied.
 
 ---
 
@@ -221,8 +209,8 @@ Reference: Blender outliner, Fusion 360 browser.
 
 | Sprint | Focus | Items |
 |--------|-------|-------|
-| Next | Core usability | Context-sensitive ops, Property panel, Redo |
-| +1 | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
-| +2 | Data & output | Export, Project save/load, Grid snapping |
-| +3 | Power-user | Command palette, History timeline, Display modes |
-| +4 | Polish | Object list improvements, Measurement tools |
+| ✅ Done | Core usability | Context-sensitive ops, Property panel, Redo |
+| Next | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
+| +1 | Data & output | Export, Project save/load, Grid snapping |
+| +2 | Power-user | Command palette, History timeline, Display modes |
+| +3 | Polish | Object list improvements, Measurement tools |

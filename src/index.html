@@ -39,6 +39,48 @@
                 </button>
             </div>
 
+            <!-- Property Panel (right slide-in, shown when object selected) -->
+            <div id="property-panel">
+                <div class="prop-header">
+                    <span id="prop-obj-name" class="prop-title">プロパティ</span>
+                    <button id="prop-panel-close" class="prop-close" title="閉じる">×</button>
+                </div>
+                <div class="prop-body">
+                    <!-- Position -->
+                    <div class="prop-section">
+                        <div class="prop-section-label">位置</div>
+                        <div class="prop-row">
+                            <span class="prop-label prop-label--x">X</span>
+                            <input class="prop-input" type="number" id="prop-pos-x" step="0.1">
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-label prop-label--y">Y</span>
+                            <input class="prop-input" type="number" id="prop-pos-y" step="0.1">
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-label prop-label--z">Z</span>
+                            <input class="prop-input" type="number" id="prop-pos-z" step="0.1">
+                        </div>
+                    </div>
+                    <!-- Dimensions -->
+                    <div class="prop-section">
+                        <div class="prop-section-label">寸法</div>
+                        <div class="prop-row">
+                            <span class="prop-label">W</span>
+                            <input class="prop-input readonly" type="number" id="prop-dim-w" step="0.1" readonly>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-label">D</span>
+                            <input class="prop-input readonly" type="number" id="prop-dim-d" step="0.1" readonly>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-label">H</span>
+                            <input class="prop-input" type="number" id="prop-dim-h" step="0.1" min="0.1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Confirm / Cancel (shown while drawing or extruding) -->
             <div id="confirmationControls" style="display: none;">
                 <button id="confirmShape" class="confirm-btn confirm-btn--ok">✓ 確定</button>
