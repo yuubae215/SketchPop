@@ -38,15 +38,32 @@ export class ObjectListDOMHandler {
         const objectItem = this.objectList.querySelector(`[data-object-id="${objectId}"]`);
         if (!objectItem) return;
 
-        const nameElement = objectItem.querySelector('.object-name');
-        const typeElement = objectItem.querySelector('.object-type');
-        
-        if (nameElement) nameElement.textContent = itemData.name;
-        if (typeElement) typeElement.textContent = itemData.type;
-        
+        const nameEl = objectItem.querySelector('.object-name');
+        const dimsEl = objectItem.querySelector('.object-dims');
+        const visBtn  = objectItem.querySelector('.object-vis-btn');
+
+        if (nameEl) nameEl.textContent = itemData.name;
+
+        if (dimsEl && itemData.dims) {
+            dimsEl.textContent = itemData.dims;
+        } else if (!dimsEl && itemData.dims) {
+            const info = objectItem.querySelector('.object-info');
+            if (info) {
+                const span = document.createElement('span');
+                span.className = 'object-dims';
+                span.textContent = itemData.dims;
+                info.appendChild(span);
+            }
+        }
+
+        if (visBtn) {
+            visBtn.classList.toggle('object-vis-btn--hidden', itemData.isVisible === false);
+        }
+
         // Update class names
         objectItem.classList.remove('sketch', 'extruded');
         objectItem.classList.add(itemData.className);
+        objectItem.classList.toggle('obj-hidden', itemData.isVisible === false);
     }
 
     /**
@@ -110,6 +127,15 @@ export class ObjectListDOMHandler {
     addClickListener(clickHandler) {
         if (!this.objectList) return;
         this.objectList.addEventListener('click', clickHandler);
+    }
+
+    /**
+     * Add dblclick event listener to the object list
+     * @param {Function} handler
+     */
+    addDblClickListener(handler) {
+        if (!this.objectList) return;
+        this.objectList.addEventListener('dblclick', handler);
     }
 }
 

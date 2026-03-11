@@ -16,16 +16,93 @@ export class ObjectListManager {
     }
 
     setupEventListeners() {
-        // Listen for clicks on object items
         this.domHandler.addClickListener(this.onObjectClick.bind(this));
+        this.domHandler.addDblClickListener(this.onObjectDblClick.bind(this));
     }
 
     onObjectClick(event) {
+        // Visibility toggle button
+        if (event.target.closest('[data-action="toggle-vis"]')) {
+            const objectItem = event.target.closest('.object-item');
+            if (!objectItem) return;
+            this.toggleVisibility(objectItem.dataset.objectId);
+            return;
+        }
+
         const objectItem = event.target.closest('.object-item');
         if (!objectItem) return;
+        // Don't select if clicking on an inline rename input
+        if (event.target.tagName === 'INPUT') return;
+        this.selectObject(objectItem.dataset.objectId);
+    }
 
-        const objectId = objectItem.dataset.objectId;
-        this.selectObject(objectId);
+    onObjectDblClick(event) {
+        const objectItem = event.target.closest('.object-item');
+        if (!objectItem) return;
+        if (event.target.closest('[data-action="toggle-vis"]')) return;
+        this.startRename(objectItem.dataset.objectId);
+    }
+
+    toggleVisibility(objectId) {
+        const sketch = this.stateManager.sketches.find(s => s.objectId === objectId);
+        if (!sketch) return;
+
+        const mesh = sketch.extrudedMesh || sketch.mesh;
+        if (!mesh) return;
+        mesh.visible = !mesh.visible;
+
+        // Also toggle 2D sketch mesh if it exists
+        if (sketch.mesh && sketch.mesh !== mesh) {
+            sketch.mesh.visible = mesh.visible;
+        }
+
+        this.updateSketchObject(sketch);
+    }
+
+    /**
+     * Rename an object via an inline input in the object list.
+     * @param {string} objectId
+     */
+    startRename(objectId) {
+        const sketch = this.stateManager.sketches.find(s => s.objectId === objectId);
+        if (!sketch) return;
+
+        const objectItem = this.domHandler.objectList
+            ? this.domHandler.objectList.querySelector(`[data-object-id="${objectId}"]`)
+            : null;
+        if (!objectItem) return;
+
+        const nameEl = objectItem.querySelector('.object-name');
+        if (!nameEl || objectItem.querySelector('.object-rename-input')) return;
+
+        const currentName = nameEl.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'object-rename-input';
+        input.value = currentName;
+        nameEl.replaceWith(input);
+        input.focus();
+        input.select();
+
+        const commit = () => {
+            const newName = input.value.trim() || currentName;
+            sketch.objectName = newName;
+            const span = document.createElement('span');
+            span.className = 'object-name';
+            span.textContent = newName;
+            input.replaceWith(span);
+        };
+
+        input.addEventListener('blur', commit, { once: true });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+            if (e.key === 'Escape') {
+                sketch.objectName = currentName; // no change
+                input.value = currentName;
+                input.blur();
+            }
+            e.stopPropagation();
+        });
     }
 
     selectObject(objectIdOrMesh) {
