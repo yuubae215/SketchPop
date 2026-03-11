@@ -7,6 +7,9 @@ import { StatusBarManager } from './StatusBarManager.js';
 import { CommandManager } from './CommandManager.js';
 import { PropertyPanelManager } from './PropertyPanelManager.js';
 import { ToastManager } from './ToastManager.js';
+import { GridSnapManager } from './GridSnapManager.js';
+import { ExportManager } from './ExportManager.js';
+import { ProjectManager } from './ProjectManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -18,6 +21,9 @@ export class InteractionManager {
         this.statusBarManager = new StatusBarManager();
         this.commandManager = new CommandManager();
         this.propertyPanelManager = new PropertyPanelManager();
+        this.gridSnapManager = new GridSnapManager(1.0);
+        this.exportManager = new ExportManager(sceneManager, stateManager);
+        this.projectManager = new ProjectManager(sceneManager, stateManager);
         this.mouse = new THREE.Vector2();
         this.sketchExtrusionDimensions = [];
         this._numericInput = '';
@@ -119,6 +125,36 @@ export class InteractionManager {
         document.getElementById('home-btn').addEventListener('click', () => {
             this.sceneManager.fitAllObjects();
         });
+
+        // Save / Load
+        const saveBtn = document.getElementById('top-save');
+        if (saveBtn) saveBtn.addEventListener('click', () => this._handleSave());
+
+        const loadBtn = document.getElementById('top-load');
+        if (loadBtn) loadBtn.addEventListener('click', () => this._handleLoad());
+
+        // Grid snap toggle
+        const snapBtn = document.getElementById('top-snap');
+        if (snapBtn) snapBtn.addEventListener('click', () => this._toggleGridSnap());
+
+        // Export dropdown
+        const exportBtn = document.getElementById('top-export');
+        const exportMenu = document.getElementById('export-menu');
+        if (exportBtn && exportMenu) {
+            exportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenu.classList.toggle('open');
+            });
+            exportMenu.querySelectorAll('[data-export]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    exportMenu.classList.remove('open');
+                    this._handleExport(item.dataset.export);
+                });
+            });
+            // Close on outside click
+            document.addEventListener('click', () => exportMenu.classList.remove('open'));
+        }
 
         // Initialize icons
         this.updateSidebarIcons();
@@ -268,9 +304,10 @@ export class InteractionManager {
     }
 
     handleSketchClick(intersection) {
+        const snapped = intersection ? this.gridSnapManager.snapPoint(intersection.clone()) : intersection;
         if (!this.stateManager.isDrawing) {
             this.stateManager.isDrawing = true;
-            this.stateManager.currentSketch = new SketchRectangle(intersection, intersection);
+            this.stateManager.currentSketch = new SketchRectangle(snapped, snapped);
             this.stateManager.currentSketch.setStateManager(this.stateManager);
             const mesh = this.stateManager.currentSketch.createMesh();
             this.sceneManager.addToScene(mesh);
@@ -278,6 +315,7 @@ export class InteractionManager {
             const completedSketch = this.stateManager.currentSketch;
             const success = this.stateManager.finishDrawing();
             if (success && completedSketch) {
+                this.projectManager.triggerAutoSave();
                 // Record undo command
                 this.commandManager.push(
                     CommandManager.createAddSketch(completedSketch, this.sceneManager, this.stateManager)
@@ -315,6 +353,7 @@ export class InteractionManager {
                 this.commandManager.push(
                     CommandManager.createExtrude(sketchForUndo, this.sceneManager, this.stateManager)
                 );
+                this.projectManager.triggerAutoSave();
                 ToastManager.show('Object created', 'success');
             }
         } else {
@@ -362,14 +401,16 @@ export class InteractionManager {
 
         if (this.stateManager.isDrawing && this.stateManager.currentSketch) {
             event.preventDefault();
-            const mesh = this.stateManager.currentSketch.update(intersection);
+            const snappedIntersection = intersection ? this.gridSnapManager.snapPoint(intersection.clone()) : intersection;
+            const mesh = this.stateManager.currentSketch.update(snappedIntersection);
             if (mesh) {
                 this.sceneManager.addToScene(mesh);
             }
         } else if (this.stateManager.isExtruding && this.stateManager.selectedSketch && this.stateManager.extrudeStartPos) {
             event.preventDefault();
             const distance = intersection.distanceTo(this.stateManager.extrudeStartPos);
-            const height = Math.max(0, distance * 0.5);
+            const rawHeight = Math.max(0, distance * 0.5);
+            const height = this.gridSnapManager.snapValue(rawHeight);
             const mesh = this.stateManager.selectedSketch.extrude(height);
             if (mesh) {
                 this.sceneManager.addToScene(mesh);
@@ -576,6 +617,13 @@ export class InteractionManager {
             return;
         }
 
+        // Save: Ctrl+S / Cmd+S
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+            event.preventDefault();
+            this._handleSave();
+            return;
+        }
+
         // Numeric input during active extrusion
         const isExtruding = this.stateManager.isExtruding || this.stateManager.isFaceExtruding;
         if (isExtruding) {
@@ -602,6 +650,11 @@ export class InteractionManager {
 
         // Mode shortcuts
         switch (event.key.toLowerCase()) {
+            case 'g':
+                if (!event.ctrlKey) {
+                    this._toggleGridSnap();
+                }
+                break;
             case 's':
                 if (!event.ctrlKey) {
                     this.stateManager.setMode('sketch');
@@ -891,6 +944,7 @@ export class InteractionManager {
                 this.selectionManager.deselectAll();
                 this.propertyPanelManager.hide();
                 this.commandManager.push(deleteCmd);
+                this.projectManager.triggerAutoSave();
                 this.updateSidebarIcons();
                 ToastManager.show('Object deleted', 'info');
             }
@@ -950,7 +1004,53 @@ export class InteractionManager {
         // Auto-select the duplicate
         this._contextSelectObject(dup.extrudedMesh, null);
 
+        this.projectManager.triggerAutoSave();
         ToastManager.show('Object duplicated', 'success');
+    }
+
+    // ── Project save / load ───────────────────────────────────────────────
+
+    _handleSave() {
+        this.projectManager.saveToFile();
+        ToastManager.show('Project saved', 'success');
+    }
+
+    _handleLoad() {
+        this.projectManager.loadFromFile();
+    }
+
+    // ── Grid snap ─────────────────────────────────────────────────────────
+
+    _toggleGridSnap() {
+        const enabled = this.gridSnapManager.toggle();
+        const btn = document.getElementById('top-snap');
+        if (btn) btn.classList.toggle('active', enabled);
+
+        const indicator = document.getElementById('snap-indicator');
+        if (indicator) {
+            indicator.style.display = enabled ? 'inline' : 'none';
+            indicator.textContent = `Snap ${this.gridSnapManager.gridSize}`;
+        }
+
+        ToastManager.show(enabled ? `Grid snap ON (${this.gridSnapManager.gridSize} unit)` : 'Grid snap OFF', 'info');
+    }
+
+    // ── Export ────────────────────────────────────────────────────────────
+
+    _handleExport(format) {
+        let ok = false;
+        switch (format) {
+            case 'stl':  ok = this.exportManager.exportSTL();        break;
+            case 'obj':  ok = this.exportManager.exportOBJ();        break;
+            case 'gltf': ok = this.exportManager.exportGLTF(false);  break;
+            case 'glb':  ok = this.exportManager.exportGLTF(true);   break;
+            case 'png':  ok = this.exportManager.exportPNG();        break;
+        }
+        if (ok) {
+            ToastManager.show(`Exported as ${format.toUpperCase()}`, 'success');
+        } else {
+            ToastManager.show('Nothing to export — add objects first', 'warning');
+        }
     }
 
     getFaceFromIntersection(intersect) {

@@ -505,3 +505,62 @@ body {
 
 .toast--error   { border-left: 3px solid #dc3545; }
 .toast--error   .toast-icon { color: #dc3545; }
+
+/* ============================
+   Export dropdown
+   ============================ */
+.tb-dropdown {
+    position: relative;
+}
+
+.tb-dropdown__menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 150px;
+    background: rgba(26, 26, 30, 0.98);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 4px 0;
+    z-index: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+}
+
+.tb-dropdown__menu.open {
+    display: block;
+}
+
+.tb-dropdown__item {
+    display: block;
+    width: 100%;
+    padding: 8px 14px;
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s, color 0.12s;
+}
+
+.tb-dropdown__item:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+
+/* ============================
+   Snap indicator (status bar)
+   ============================ */
+.snap-indicator {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ff9500;
+    background: rgba(255, 149, 0, 0.12);
+    border: 1px solid rgba(255, 149, 0, 0.3);
+    border-radius: 4px;
+    padding: 1px 6px;
+    letter-spacing: 0.04em;
+}
