@@ -31,6 +31,22 @@ class AddSketchCommand {
         // Remove from state
         this.stateManager.removeSketch(sketch);
     }
+
+    redo() {
+        const sketch = this.sketch;
+
+        // Re-add 2D mesh to scene
+        if (sketch.mesh) this.sceneManager.addToScene(sketch.mesh);
+
+        // Re-add to state without re-generating objectId
+        if (!this.stateManager.sketches.includes(sketch)) {
+            this.stateManager.sketches.push(sketch);
+            this.stateManager.updateShapeCount();
+            if (this.stateManager.objectListManager) {
+                this.stateManager.objectListManager.restoreSketchObject(sketch);
+            }
+        }
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -41,6 +57,8 @@ class ExtrudeCommand {
         this.sketch = sketch;
         this.sceneManager = sceneManager;
         this.stateManager = stateManager;
+        // Snapshot the height at push time (before any undo changes it)
+        this.savedHeight = sketch.extrudeHeight;
     }
 
     undo() {
@@ -62,6 +80,19 @@ class ExtrudeCommand {
         }
 
         // Refresh the object list entry
+        this.stateManager.updateSketchInObjectList(sketch);
+    }
+
+    redo() {
+        const sketch = this.sketch;
+
+        // Re-extrude to the saved height
+        const mesh = sketch.extrude(this.savedHeight);
+        if (mesh) this.sceneManager.addToScene(mesh);
+
+        // Apply confirmed visual state (colors, opacity)
+        sketch.confirmExtrusion();
+
         this.stateManager.updateSketchInObjectList(sketch);
     }
 }
@@ -90,6 +121,16 @@ class DeleteSketchCommand {
             this.sceneManager.addToScene(sketch.extrudedMesh);
         }
     }
+
+    redo() {
+        const sketch = this.sketch;
+
+        // Re-delete: remove from scene and state
+        if (sketch.mesh) this.sceneManager.removeFromScene(sketch.mesh);
+        if (sketch.extrudedMesh) this.sceneManager.removeFromScene(sketch.extrudedMesh);
+        sketch.clearDimensions();
+        this.stateManager.removeSketch(sketch);
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -97,29 +138,62 @@ class DeleteSketchCommand {
 // ─────────────────────────────────────────────
 class FaceExtrudeCommand {
     /**
-     * @param {object} snapshot  Plain object with the state before face-extrude:
-     *   { sketch, oldGeometry, oldExtrudeHeight,
-     *     oldStartPoint, oldEndPoint, sceneManager, stateManager }
+     * @param {object} snapshot  Plain object with the state BEFORE face-extrude:
+     *   { sketch, oldGeometry, oldMeshPosition, oldExtrudeHeight,
+     *     oldStartPoint, oldEndPoint, stateManager }
+     *
+     * Called AFTER integrateExtrusionWithOriginal() has run, so sketch.extrudedMesh
+     * already holds the new geometry/position — we snapshot that as "new" state.
      */
     constructor(snapshot) {
         this.snapshot = snapshot;
+
+        // Capture new state (integration already happened at push time)
+        const sketch = snapshot.sketch;
+        if (sketch && sketch.extrudedMesh) {
+            this.newGeometry = sketch.extrudedMesh.geometry.clone();
+            this.newMeshPosition = sketch.extrudedMesh.position.clone();
+        }
+        this.newExtrudeHeight = sketch ? sketch.extrudeHeight : 0;
+        this.newStartPoint = sketch && sketch.startPoint ? sketch.startPoint.clone() : null;
+        this.newEndPoint = sketch && sketch.endPoint ? sketch.endPoint.clone() : null;
     }
 
     undo() {
-        const { sketch, oldGeometry, oldExtrudeHeight,
+        const { sketch, oldGeometry, oldMeshPosition, oldExtrudeHeight,
                 oldStartPoint, oldEndPoint,
-                sceneManager, stateManager } = this.snapshot;
+                stateManager } = this.snapshot;
 
         if (!sketch || !sketch.extrudedMesh) return;
 
-        // Swap geometry back
+        // Swap geometry back to pre-face-extrude state
         sketch.extrudedMesh.geometry.dispose();
-        sketch.extrudedMesh.geometry = oldGeometry;
+        sketch.extrudedMesh.geometry = oldGeometry.clone();
+
+        // Restore mesh position
+        if (oldMeshPosition) sketch.extrudedMesh.position.copy(oldMeshPosition);
 
         // Restore sketch dimensions
         sketch.extrudeHeight = oldExtrudeHeight;
-        sketch.startPoint.copy(oldStartPoint);
-        sketch.endPoint.copy(oldEndPoint);
+        if (oldStartPoint) sketch.startPoint.copy(oldStartPoint);
+        if (oldEndPoint) sketch.endPoint.copy(oldEndPoint);
+
+        stateManager.updateSketchInObjectList(sketch);
+    }
+
+    redo() {
+        const { sketch, stateManager } = this.snapshot;
+        if (!sketch || !sketch.extrudedMesh || !this.newGeometry) return;
+
+        // Swap geometry forward to post-face-extrude state
+        sketch.extrudedMesh.geometry.dispose();
+        sketch.extrudedMesh.geometry = this.newGeometry.clone();
+
+        if (this.newMeshPosition) sketch.extrudedMesh.position.copy(this.newMeshPosition);
+
+        sketch.extrudeHeight = this.newExtrudeHeight;
+        if (this.newStartPoint) sketch.startPoint.copy(this.newStartPoint);
+        if (this.newEndPoint) sketch.endPoint.copy(this.newEndPoint);
 
         stateManager.updateSketchInObjectList(sketch);
     }
@@ -140,7 +214,7 @@ export class CommandManager {
         if (this.undoStack.length > MAX_HISTORY) {
             this.undoStack.shift();
         }
-        // New action clears any redo history
+        // New action clears redo history
         this.redoStack = [];
         this._updateUI();
     }
@@ -154,21 +228,31 @@ export class CommandManager {
         return true;
     }
 
-    // Redo is not implemented in this sprint – placeholder only
     redo() {
+        if (this.redoStack.length === 0) return false;
+        const command = this.redoStack.pop();
+        command.redo();
+        this.undoStack.push(command);
+        if (this.undoStack.length > MAX_HISTORY) {
+            this.undoStack.shift();
+        }
         this._updateUI();
-        return false;
+        return true;
     }
 
     canUndo() { return this.undoStack.length > 0; }
     canRedo() { return this.redoStack.length > 0; }
 
     _updateUI() {
-        // Optional: update button states if elements exist
         const undoBtn = document.getElementById('sidebar-undo');
         if (undoBtn) {
             undoBtn.classList.toggle('disabled', !this.canUndo());
             undoBtn.title = `Undo (Ctrl+Z)${this.canUndo() ? '' : ' — nothing to undo'}`;
+        }
+        const redoBtn = document.getElementById('sidebar-redo');
+        if (redoBtn) {
+            redoBtn.classList.toggle('disabled', !this.canRedo());
+            redoBtn.title = `Redo (Ctrl+Y)${this.canRedo() ? '' : ' — nothing to redo'}`;
         }
     }
 

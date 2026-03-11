@@ -112,9 +112,20 @@ export class ObjectListManager {
 
     removeSketchObject(sketch) {
         if (!sketch.objectId) return;
-        
+
         // Remove from DOM using handler
         this.domHandler.removeObjectItem(sketch.objectId);
+    }
+
+    /**
+     * Re-add a sketch that already has an objectId (used by redo of AddSketchCommand).
+     * Unlike addSketchObject(), this preserves the existing objectId.
+     */
+    restoreSketchObject(sketch) {
+        if (!sketch.objectId) return;
+        const itemData = generateObjectItemData(sketch, this.getObjectIndex(sketch));
+        const htmlContent = generateObjectItemHTML(itemData);
+        this.domHandler.addObjectItem(itemData, htmlContent);
     }
 
     clearAllObjects() {
@@ -150,3 +161,4 @@ export class ObjectListManager {
         return selectedSketch.extrudedMesh || null;
     }
 }
+    // Note: restoreSketchObject added below via patch

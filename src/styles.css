@@ -286,3 +286,126 @@ body {
     z-index: 9999;
     display: none;
 }
+
+/* ============================
+   Property Panel (right slide-in)
+   ============================ */
+#property-panel {
+    position: absolute;
+    top: 64px;          /* below top-controls */
+    right: -220px;      /* hidden off-screen */
+    width: 210px;
+    background: rgba(28, 28, 32, 0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px 0 0 10px;
+    backdrop-filter: blur(10px);
+    z-index: 120;
+    transition: right 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    user-select: none;
+}
+
+#property-panel.visible {
+    right: 0;
+}
+
+.prop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.prop-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ff6b35;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.prop-close {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+}
+.prop-close:hover { color: #ccc; }
+
+.prop-body {
+    padding: 8px 0 10px;
+}
+
+.prop-section {
+    padding: 0 12px;
+    margin-bottom: 10px;
+}
+
+.prop-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 5px;
+}
+
+.prop-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.prop-label {
+    width: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    flex-shrink: 0;
+    text-align: center;
+}
+.prop-label--x { color: #e05252; }
+.prop-label--y { color: #52a852; }
+.prop-label--z { color: #5272e0; }
+
+.prop-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    color: #e0e0e0;
+    font-size: 12px;
+    padding: 4px 7px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+}
+.prop-input::-webkit-inner-spin-button,
+.prop-input::-webkit-outer-spin-button { opacity: 0.4; }
+.prop-input:focus {
+    border-color: rgba(74, 144, 226, 0.7);
+    background: rgba(74, 144, 226, 0.08);
+}
+.prop-input.readonly {
+    color: #555;
+    cursor: default;
+}
+
+/* Mobile: hide property panel (too small) */
+@media (max-width: 640px) {
+    #property-panel { display: none; }
+}
+
+/* ============================
+   Context cursor classes
+   ============================ */
+#canvas-container.ctx-sketch   { cursor: crosshair; }
+#canvas-container.ctx-extrude  { cursor: ns-resize; }
+#canvas-container.ctx-select   { cursor: pointer; }
+#canvas-container.ctx-face     { cursor: grab; }
