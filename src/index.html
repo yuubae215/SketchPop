@@ -12,7 +12,7 @@
 
         <!-- Unified top bar -->
         <div id="top-bar">
-            <!-- Left: app name + undo/redo -->
+            <!-- Left: app name + undo/redo + save/load -->
             <div class="top-bar__section top-bar__left">
                 <span class="top-bar__logo">SketchPop</span>
                 <div class="top-bar__sep"></div>
@@ -21,6 +21,14 @@
                 </button>
                 <button id="top-redo" class="tb-btn" title="Redo (Ctrl+Y)" disabled>
                     <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
+                </button>
+                <div class="top-bar__sep"></div>
+                <!-- Save / Load project -->
+                <button id="top-save" class="tb-btn" title="Save project (Ctrl+S)">
+                    <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z" fill="currentColor"/></svg>
+                </button>
+                <button id="top-load" class="tb-btn" title="Load project">
+                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5v-2z" fill="currentColor"/></svg>
                 </button>
             </div>
 
@@ -40,7 +48,7 @@
                 </button>
             </div>
 
-            <!-- Right: object actions + view controls -->
+            <!-- Right: object actions + grid snap + export + view controls -->
             <div class="top-bar__section top-bar__right">
                 <button id="top-duplicate" class="tb-btn" title="Duplicate (Ctrl+D)" disabled>
                     <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/></svg>
@@ -48,6 +56,24 @@
                 <button id="sidebar-clear" class="tb-btn tb-btn--danger" title="Clear all">
                     <svg viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 </button>
+                <div class="top-bar__sep"></div>
+                <!-- Grid snap toggle -->
+                <button id="top-snap" class="tb-btn" title="Grid snap (G)">
+                    <svg viewBox="0 0 24 24"><path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z" fill="currentColor"/></svg>
+                </button>
+                <!-- Export dropdown -->
+                <div class="tb-dropdown">
+                    <button id="top-export" class="tb-btn" title="Export">
+                        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5v-2z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="tb-dropdown__menu" id="export-menu">
+                        <button class="tb-dropdown__item" data-export="stl">STL (3D Print)</button>
+                        <button class="tb-dropdown__item" data-export="obj">OBJ</button>
+                        <button class="tb-dropdown__item" data-export="gltf">GLTF</button>
+                        <button class="tb-dropdown__item" data-export="glb">GLB</button>
+                        <button class="tb-dropdown__item" data-export="png">PNG Screenshot</button>
+                    </div>
+                </div>
                 <div class="top-bar__sep"></div>
                 <button id="perspective-btn" class="tb-btn active" title="Perspective (P)">P</button>
                 <button id="orthographic-btn" class="tb-btn" title="Orthographic (O)">O</button>
@@ -109,6 +135,7 @@
             <!-- Minimal status bar -->
             <div id="status-bar">
                 <span id="current-mode">Sketch</span>
+                <span id="snap-indicator" class="snap-indicator" style="display:none">Snap 1.0</span>
                 <span id="operation-hint"></span>
             </div>
         </div>

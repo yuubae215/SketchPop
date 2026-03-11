@@ -125,11 +125,12 @@ Currently right-click only confirms extrusion; extend for contextual actions.
 
 ---
 
-### 🟠 [TODO] Grid snapping
+### ✅ [DONE] Grid snapping — Sprint 2026-03-11
 
-Snap sketch corners and extrusion heights to a configurable grid (e.g. 0.5, 1, 5 unit intervals).
-Toggle button + hotkey (`G`).
-Includes object snap (edge, vertex, face-center) and angle snap (15°, 45°, 90°).
+`GridSnapManager.js` — snaps sketch corners and extrusion heights to a 1-unit grid.
+- Toggle via toolbar button or `G` hotkey
+- Visual indicator ("Snap 1.0") in the status bar when active
+- Snap applied to sketch start/end points (x/z) and extrusion height
 
 ---
 
@@ -143,15 +144,16 @@ Reference: Blender, Fusion 360 mirror/pattern features.
 
 ---
 
-### 🟠 [TODO] Export
+### ✅ [DONE] Export — Sprint 2026-03-11
 
-Supported formats:
-- **STL** — 3D printing
+`ExportManager.js` — exports all extruded objects via a top-bar dropdown.
+- **STL** — 3D printing (text format)
 - **OBJ** — general exchange
-- **GLTF/GLB** — web/game engines
-- **PNG** — viewport screenshot
+- **GLTF** — web/game engines (JSON)
+- **GLB** — web/game engines (binary)
+- **PNG** — viewport screenshot (canvas capture)
 
-Accessible via a top-bar "File" menu or keyboard shortcut.
+Accessible via the Export button (↓ icon) in the top-bar right section.
 
 ---
 
@@ -210,12 +212,13 @@ Reference: Blender outliner, Fusion 360 browser.
 
 ---
 
-### 🟢 [TODO] Project save / load
+### ✅ [DONE] Project save / load — Sprint 2026-03-11
 
-- Save scene to JSON (localStorage + file download)
-- Load from JSON file
-- Auto-save on change
-- Recent files list
+`ProjectManager.js` — serialises and restores the scene.
+- **Save** (`Ctrl+S` / toolbar button) — downloads `sketchpop.json`
+- **Load** (toolbar button) — opens a file-picker and restores all objects
+- **Auto-save** — debounced write to `localStorage` after every create / delete / duplicate
+- Serialises: `startPoint`, `endPoint`, `isExtruded`, `extrudeHeight`, `objectId`
 
 ---
 
@@ -236,6 +239,6 @@ Reference: Blender outliner, Fusion 360 browser.
 |--------|-------|-------|
 | ✅ Done | Core usability | Context-sensitive ops, Property panel, Redo |
 | ✅ Done | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
-| Next | Data & output | Export, Project save/load, Grid snapping |
-| +1 | Power-user | Command palette, History timeline, Display modes |
-| +2 | Polish | Object list improvements, Measurement tools |
+| ✅ Done | Data & output | Export (STL/OBJ/GLTF/PNG), Project save/load, Grid snapping |
+| Next | Power-user | Command palette, History timeline, Display modes |
+| +1 | Polish | Object list improvements, Measurement tools, Context menu |
