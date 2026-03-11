@@ -10,6 +10,9 @@ import { ToastManager } from './ToastManager.js';
 import { GridSnapManager } from './GridSnapManager.js';
 import { ExportManager } from './ExportManager.js';
 import { ProjectManager } from './ProjectManager.js';
+import { CommandPaletteManager } from './CommandPaletteManager.js';
+import { HistoryPanelManager } from './HistoryPanelManager.js';
+import { DisplayModeManager } from './DisplayModeManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -42,6 +45,13 @@ export class InteractionManager {
 
         // Initialize status bar
         this.statusBarManager.updateMode('sketch');
+
+        // Power-user features (sprint 3)
+        this.displayModeManager = new DisplayModeManager(sceneManager, stateManager);
+        this.historyPanelManager = new HistoryPanelManager(this.commandManager);
+        this.commandPaletteManager = new CommandPaletteManager();
+        this._hookHistoryRefresh();
+        this._registerPaletteCommands();
     }
 
     setupEventListeners() {
@@ -136,6 +146,14 @@ export class InteractionManager {
         // Grid snap toggle
         const snapBtn = document.getElementById('top-snap');
         if (snapBtn) snapBtn.addEventListener('click', () => this._toggleGridSnap());
+
+        // History panel toggle
+        const histBtn = document.getElementById('top-history');
+        if (histBtn) histBtn.addEventListener('click', () => this.historyPanelManager.toggle());
+
+        // Command palette
+        const paletteBtn = document.getElementById('top-command-palette');
+        if (paletteBtn) paletteBtn.addEventListener('click', () => this.commandPaletteManager.open());
 
         // Export dropdown
         const exportBtn = document.getElementById('top-export');
@@ -354,6 +372,7 @@ export class InteractionManager {
                     CommandManager.createExtrude(sketchForUndo, this.sceneManager, this.stateManager)
                 );
                 this.projectManager.triggerAutoSave();
+                if (sketchForUndo.extrudedMesh) this.displayModeManager.applyToMesh(sketchForUndo.extrudedMesh);
                 ToastManager.show('Object created', 'success');
             }
         } else {
@@ -653,6 +672,11 @@ export class InteractionManager {
             case 'g':
                 if (!event.ctrlKey) {
                     this._toggleGridSnap();
+                }
+                break;
+            case 'h':
+                if (!event.ctrlKey && !event.metaKey) {
+                    this.historyPanelManager.toggle();
                 }
                 break;
             case 's':
@@ -1096,5 +1120,68 @@ export class InteractionManager {
         }
 
         this.selectionManager.setHoveredObject(null);
+    }
+
+    // ── History panel hook ────────────────────────────────────────────────
+
+    _hookHistoryRefresh() {
+        // Patch CommandManager._updateUI to also refresh history panel
+        const orig = this.commandManager._updateUI.bind(this.commandManager);
+        this.commandManager._updateUI = () => {
+            orig();
+            this.historyPanelManager.refresh();
+        };
+    }
+
+    // ── Command palette registration ──────────────────────────────────────
+
+    _registerPaletteCommands() {
+        const im = this;
+        const sm = this.stateManager;
+        const sc = this.sceneManager;
+
+        this.commandPaletteManager.register([
+            // ── Modes ──
+            { id: 'mode-sketch',    label: 'Sketch mode',       shortcut: 'S',   action: () => { sm.setMode('sketch');  im.updateSidebarIcons(); } },
+            { id: 'mode-extrude',   label: 'Extrude mode',      shortcut: 'E',   action: () => { sm.setMode('extrude'); im.updateSidebarIcons(); } },
+            { id: 'mode-select',    label: 'Select mode',       shortcut: 'V',   action: () => { sm.setMode('select');  im.updateSidebarIcons(); } },
+
+            // ── View ──
+            { id: 'view-fit',       label: 'Fit all (home)',    shortcut: 'F',   action: () => sc.fitAllObjects() },
+            { id: 'view-front',     label: 'Front view',        shortcut: '1',   action: () => sc.setCameraView('front') },
+            { id: 'view-right',     label: 'Right view',        shortcut: '3',   action: () => sc.setCameraView('right') },
+            { id: 'view-top',       label: 'Top view',          shortcut: '7',   action: () => sc.setCameraView('top') },
+            { id: 'view-persp',     label: 'Perspective',       shortcut: 'P',   action: () => { im.statusBarManager.updateCameraType('perspective'); im._syncProjectionButtons(true); ToastManager.show('Switched to perspective', 'info'); } },
+            { id: 'view-ortho',     label: 'Orthographic',      shortcut: 'O',   action: () => { im.statusBarManager.updateCameraType('orthographic'); im._syncProjectionButtons(false); ToastManager.show('Switched to orthographic', 'info'); } },
+
+            // ── Display modes ──
+            { id: 'display-shaded',       label: 'Display: Shaded',           shortcut: '',    action: () => im.displayModeManager.setMode('shaded') },
+            { id: 'display-shaded-edges', label: 'Display: Shaded + Edges',   shortcut: '',    action: () => im.displayModeManager.setMode('shaded-edges') },
+            { id: 'display-wireframe',    label: 'Display: Wireframe',        shortcut: '',    action: () => im.displayModeManager.setMode('wireframe') },
+            { id: 'display-xray',         label: 'Display: X-Ray',            shortcut: '',    action: () => im.displayModeManager.setMode('xray') },
+            { id: 'display-cycle',        label: 'Cycle display mode',        shortcut: 'W',   action: () => im.displayModeManager.cycleMode() },
+
+            // ── Edit ──
+            { id: 'edit-undo',      label: 'Undo',              shortcut: 'Ctrl+Z', action: () => im.commandManager.undo() },
+            { id: 'edit-redo',      label: 'Redo',              shortcut: 'Ctrl+Y', action: () => im.commandManager.redo() },
+            { id: 'edit-duplicate', label: 'Duplicate',         shortcut: 'Ctrl+D', action: () => im.handleDuplicate() },
+            { id: 'edit-delete',    label: 'Delete selected',   shortcut: 'Del',    action: () => im.handleDeleteSelected() },
+            { id: 'edit-clear',     label: 'Clear all',         shortcut: '',       action: () => { sm.clearAll(sc); im.propertyPanelManager.hide(); ToastManager.show('Scene cleared', 'info'); } },
+
+            // ── File ──
+            { id: 'file-save',      label: 'Save project',      shortcut: 'Ctrl+S', action: () => im._handleSave() },
+            { id: 'file-load',      label: 'Load project',      shortcut: '',       action: () => im._handleLoad() },
+            { id: 'export-stl',     label: 'Export STL',        shortcut: '',       action: () => im._handleExport('stl') },
+            { id: 'export-obj',     label: 'Export OBJ',        shortcut: '',       action: () => im._handleExport('obj') },
+            { id: 'export-gltf',    label: 'Export GLTF',       shortcut: '',       action: () => im._handleExport('gltf') },
+            { id: 'export-glb',     label: 'Export GLB',        shortcut: '',       action: () => im._handleExport('glb') },
+            { id: 'export-png',     label: 'Export PNG screenshot', shortcut: '',   action: () => im._handleExport('png') },
+
+            // ── Grid snap ──
+            { id: 'snap-toggle',    label: 'Toggle grid snap',  shortcut: 'G',      action: () => im._toggleGridSnap() },
+
+            // ── Panels ──
+            { id: 'panel-history',  label: 'Toggle history panel', shortcut: 'H',   action: () => im.historyPanelManager.toggle() },
+        ]);
     }
 }

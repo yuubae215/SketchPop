@@ -169,35 +169,46 @@ Auto-dismiss after 3–5 s; stack multiple toasts.
 
 ---
 
-### 🟢 [TODO] History / Timeline panel
+### ✅ [DONE] History / Timeline panel — Sprint 2026-03-11
 
-Visual operation history at the bottom (Fusion 360 style):
+`HistoryPanelManager.js` — shows operation history as chips at the bottom of the viewport.
 
 ```
-[ Sketch-1 ] [ Extrude-1 (h=3) ] [ Move-1 ] [ FaceExtrude-1 ]
+[ ✏️ Sketch ] [ ⬆️ Extrude ] [ ⧉ Duplicate ] ▎ [ ⬆️ Extrude (redo, greyed) ]
 ```
 
-- Click to jump to that state
-- Right-click to delete / suppress
-- Powered by `CommandManager` undo stack (data already exists)
+- Toggle via `H` key or toolbar button (clock icon)
+- Click any chip to jump to that state (undo/redo to the target)
+- Orange cursor marker shows the current state
+- Future (redo) steps shown as dashed chips at reduced opacity
+- Auto-shows on first action; hides when history is empty
 
 ---
 
-### 🟢 [TODO] Command palette
+### ✅ [DONE] Command palette — Sprint 2026-03-11
 
-`Ctrl+K` / `Ctrl+P`: fuzzy-search all commands with keyboard navigation.
-Shows shortcut hint next to each result.
-Reference: VS Code, Fusion 360 `S` key search.
+`CommandPaletteManager.js` — fuzzy-search command launcher.
+
+- `Ctrl+K` (or toolbar 🔍 button) opens the palette
+- Fuzzy-matches all registered commands (modes, views, display, edit, file, export)
+- Keyboard navigation: `↑↓` select, `Enter` execute, `Esc` close
+- Matched characters highlighted in orange
+- Shortcut hint shown next to each result
 
 ---
 
-### 🟢 [TODO] Display modes
+### ✅ [DONE] Display modes — Sprint 2026-03-11
 
-Toggle via toolbar or hotkey (`W`):
-- **Shaded** (current default)
-- **Shaded + Edges** — overlay edge lines on solids
-- **Wireframe** — outline only
-- **X-Ray** — semi-transparent to see through solids
+`DisplayModeManager.js` — cycles through 4 display modes.
+
+- `W` key or toolbar eye icon cycles through modes
+- **Shaded** — default opaque rendering
+- **Shaded + Edges** — opaque + EdgesGeometry overlay (20° threshold)
+- **Wireframe** — `material.wireframe = true`
+- **X-Ray** — semi-transparent (`opacity 0.35`, `depthWrite false`)
+- Toast notification shows current mode name on change
+- Toolbar button highlights (orange) when not in default shaded mode
+- All existing meshes are updated when mode changes
 
 ---
 
@@ -240,5 +251,5 @@ Reference: Blender outliner, Fusion 360 browser.
 | ✅ Done | Core usability | Context-sensitive ops, Property panel, Redo |
 | ✅ Done | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
 | ✅ Done | Data & output | Export (STL/OBJ/GLTF/PNG), Project save/load, Grid snapping |
-| Next | Power-user | Command palette, History timeline, Display modes |
-| +1 | Polish | Object list improvements, Measurement tools, Context menu |
+| ✅ Done | Power-user | Command palette, History timeline, Display modes |
+| Next | Polish | Object list improvements, Measurement tools, Context menu |
