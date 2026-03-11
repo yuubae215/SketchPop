@@ -257,7 +257,8 @@ Reference: Blender outliner, Fusion 360 browser.
 | ✅ Done | Data & output | Export (STL/OBJ/GLTF/PNG), Project save/load, Grid snapping |
 | ✅ Done | Power-user | Command palette, History timeline, Display modes |
 | ✅ Done | Polish | Context menu, Object list improvements, Measurement tools |
-| **Next** | **Plasticity-inspired** | **Edge selection, Fillet/Chamfer, Boolean ops, Axis constraints, Box select** |
+| ✅ Done | **Plasticity-inspired** | **Axis constraints, Box select, Edge selection, Fillet/Chamfer, Boolean ops** |
+| **Next** | **Advanced CAD** | **Construction plane, Sweep/Loft, Loop selection, Multi-viewport** |
 
 ---
 
@@ -406,18 +407,27 @@ Reference: Blender outliner, Fusion 360 browser.
 
 ---
 
-## Next Sprint Plan — Plasticity-inspired (2026-03-12+)
+## ✅ Sprint — Plasticity-inspired (2026-03-11)
 
-### 優先順位
+### 実装済み
+
+| # | 項目 | 優先度 | 担当ファイル | 実装内容 |
+|---|------|--------|-------------|---------|
+| 1 | Axis constraints (X/Y/Z during transform) | 🔴 High | `TransformManager.js` | オブジェクト選択中に X/Y/Z キーで軸拘束。再押しで解除。ステータスバーに "Axis lock: X" 表示 |
+| 2 | Box selection (drag-select) | 🟠 Medium | `BoxSelectManager.js` | Select モードでドラッグ → オレンジ点線矩形 → 矩形内のオブジェクトを選択。Shift で追加選択 |
+| 3 | Edge selection + highlight | 🟠 Medium | `EdgeSelectionManager.js` | エッジホバーで黄色、クリックでオレンジ選択。トップバーのエッジ選択ボタンで有効化 |
+| 4 | Fillet / Chamfer edges | 🟠 Medium | `FilletManager.js` | 上面4エッジを丸め(fillet)または面取り(chamfer)。Boolean メニューから実行。再実行でリセット |
+| 5 | Boolean operations (Union/Difference/Intersect) | 🟠 Medium | `BooleanManager.js` | `three-csg-ts` を使用。Box選択で2オブジェクト選択後 Boolean メニューから操作 |
+
+### 次スプリント候補 (Advanced CAD)
 
 | # | 項目 | 優先度 | 見積 | 担当ファイル | Plasticity 対応機能 |
 |---|------|--------|------|-------------|-------------------|
-| 1 | Axis constraints (X/Y/Z during transform) | 🔴 High | S | `TransformManager.js` 拡張 | X/Y/Z axis lock |
-| 2 | Box selection (drag-select) | 🟠 Medium | M | `BoxSelectManager.js` | Box selection |
-| 3 | Edge selection + highlight | 🟠 Medium | M | `EdgeSelectionManager.js` | Edge selection mode |
-| 4 | Fillet / Chamfer edges | 🟠 Medium | L | `FilletManager.js` | Fillet (`R` key) |
-| 5 | Boolean operations (Union/Difference/Intersect) | 🟠 Medium | L | `BooleanManager.js` | Boolean ops |
-| 6 | Construction plane from face | 🟢 Low | L | `ConstructionPlaneManager.js` | Construction planes |
+| 1 | Construction plane from face | 🟠 Medium | L | `ConstructionPlaneManager.js` | Construction planes |
+| 2 | Multi-viewport (4-split) | 🟢 Low | L | `ViewportManager.js` | Multi-view |
+| 3 | Sweep along path | 🟢 Low | L | `SweepManager.js` | Sweep |
+| 4 | Loft between profiles | 🟢 Low | L | `LoftManager.js` | Loft |
+| 5 | Loop selection | 🟢 Low | M | `EdgeSelectionManager.js` 拡張 | Loop select |
 
 ---
 

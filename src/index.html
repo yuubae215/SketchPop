@@ -86,6 +86,24 @@
                 <button id="top-measure" class="tb-btn" title="Measurement tools (M)">
                     <svg viewBox="0 0 24 24"><path d="M21 6.5l-4-4-14 14 4 4 14-14zm-14 11.5l-1.5-1.5 9-9 1.5 1.5-9 9zM5 20l-3-3 1.5-1.5L5 17l1.5-1.5L8 17l-3 3z" fill="currentColor"/></svg>
                 </button>
+                <!-- Edge select toggle -->
+                <button id="top-edge-select" class="tb-btn" title="Edge select mode">
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 14h16v2H4zm0-7h2v2H4zm14 0h2v2h-2zM8 11h8v2H8z" fill="currentColor"/></svg>
+                </button>
+                <!-- Boolean operations dropdown -->
+                <div class="tb-dropdown">
+                    <button id="top-boolean" class="tb-btn" title="Boolean operations">
+                        <svg viewBox="0 0 24 24"><path d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zm-5 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" fill="currentColor"/></svg>
+                    </button>
+                    <div class="tb-dropdown__menu" id="boolean-menu">
+                        <button class="tb-dropdown__item" data-bool="union">Union (A + B)</button>
+                        <button class="tb-dropdown__item" data-bool="difference">Difference (A − B)</button>
+                        <button class="tb-dropdown__item" data-bool="intersect">Intersect (A ∩ B)</button>
+                        <div class="tb-dropdown__sep"></div>
+                        <button class="tb-dropdown__item" data-bool="fillet">Fillet top edges</button>
+                        <button class="tb-dropdown__item" data-bool="chamfer">Chamfer top edges</button>
+                    </div>
+                </div>
                 <div class="top-bar__sep"></div>
                 <button id="perspective-btn" class="tb-btn active" title="Perspective (P)">P</button>
                 <button id="orthographic-btn" class="tb-btn" title="Orthographic (O)">O</button>
