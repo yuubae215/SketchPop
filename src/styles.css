@@ -564,3 +564,262 @@ body {
     padding: 1px 6px;
     letter-spacing: 0.04em;
 }
+
+/* ============================
+   Command Palette
+   ============================ */
+#command-palette {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 80px;
+}
+
+#command-palette.cp-open {
+    display: flex;
+}
+
+.cp-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.cp-modal {
+    position: relative;
+    width: 560px;
+    max-width: calc(100vw - 32px);
+    background: rgba(22, 22, 26, 0.98);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 12px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+    overflow: hidden;
+}
+
+.cp-search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.cp-search-icon {
+    width: 18px;
+    height: 18px;
+    color: #666;
+    flex-shrink: 0;
+}
+
+.cp-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 15px;
+    line-height: 1.4;
+    caret-color: #ff6b35;
+}
+
+.cp-input::placeholder { color: #555; }
+
+.cp-esc-hint {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    color: #555;
+}
+
+.cp-list {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+    max-height: 340px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+
+.cp-empty {
+    padding: 12px 16px;
+    color: #555;
+    font-size: 13px;
+    text-align: center;
+}
+
+.cp-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.cp-item:hover,
+.cp-item--active {
+    background: rgba(255,255,255,0.07);
+}
+
+.cp-item-label {
+    flex: 1;
+    font-size: 13px;
+    color: #ccc;
+}
+
+.cp-item-label mark {
+    background: none;
+    color: #ff6b35;
+    font-weight: 700;
+}
+
+.cp-item-kbd {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+}
+
+.cp-footer {
+    display: flex;
+    gap: 16px;
+    padding: 8px 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    color: #444;
+}
+
+.cp-footer kbd {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+}
+
+/* ============================
+   History / Timeline Panel
+   ============================ */
+#history-panel {
+    position: absolute;
+    bottom: 36px;       /* above status bar */
+    left: 0;
+    right: 0;
+    height: 54px;
+    background: rgba(18, 18, 22, 0.94);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    z-index: 80;
+    transform: translateY(100%);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(6px);
+    user-select: none;
+}
+
+#history-panel.hp-visible {
+    transform: translateY(0);
+}
+
+.hp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 10px 2px;
+    flex-shrink: 0;
+}
+
+.hp-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.hp-close {
+    background: none;
+    border: none;
+    color: #444;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+}
+.hp-close:hover { color: #aaa; }
+
+.hp-track-wrap {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.hp-track {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    height: 100%;
+    width: max-content;
+}
+
+.hp-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    font-size: 11px;
+    color: #aaa;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s, color 0.12s;
+}
+
+.hp-chip:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+
+.hp-chip--future {
+    opacity: 0.4;
+    border-style: dashed;
+}
+
+.hp-chip-icon {
+    font-size: 12px;
+}
+
+.hp-chip-label {
+    font-size: 11px;
+}
+
+.hp-cursor {
+    width: 2px;
+    height: 24px;
+    background: #ff6b35;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* ============================
+   Display mode indicator (status bar)
+   ============================ */
+.display-mode-indicator {
+    font-size: 11px;
+    color: #666;
+}
