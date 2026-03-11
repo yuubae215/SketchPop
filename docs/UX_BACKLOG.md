@@ -252,4 +252,91 @@ Reference: Blender outliner, Fusion 360 browser.
 | ✅ Done | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
 | ✅ Done | Data & output | Export (STL/OBJ/GLTF/PNG), Project save/load, Grid snapping |
 | ✅ Done | Power-user | Command palette, History timeline, Display modes |
-| Next | Polish | Object list improvements, Measurement tools, Context menu |
+| **Next** | **Polish** | **Context menu, Object list improvements, Measurement tools** |
+
+---
+
+## Next Sprint Plan — Polish (2026-03-12 予定)
+
+### 優先順位と実装方針
+
+| # | 項目 | 優先度 | 見積 | 担当ファイル |
+|---|------|--------|------|-------------|
+| 1 | Context menu (right-click) | 🟠 Medium | S | `ContextMenuManager.js` |
+| 2 | Object list improvements | 🟢 Low | M | `ObjectListManager.js` 拡張 |
+| 3 | Measurement tools | 🟢 Low | L | `MeasurementManager.js` |
+
+---
+
+### 1. Context menu (`ContextMenuManager.js`)
+
+**トリガー:** 右クリック（押拡中以外の状態）
+
+**オブジェクト上で右クリック:**
+```
+┌──────────────────┐
+│ ✏️ Rename         │
+│ 📋 Duplicate      │
+│ 👁 Hide / Show    │
+│ ─────────────── │
+│ 🗑️ Delete         │
+└──────────────────┘
+```
+
+**空白領域で右クリック:**
+```
+┌──────────────────┐
+│ ✏️ Sketch here    │
+│ 🏠 Reset view     │
+└──────────────────┘
+```
+
+**実装ポイント:**
+- `InteractionManager.onRightClick()` をコンテキスト判定に拡張
+- 押拡中（extrude / face-extrude）は既存の confirm 動作を維持
+- Rename: インライン入力（`<input>` をオーバーレイ表示）
+- Hide/Show: `mesh.visible` トグル + objectList アイコン更新
+- `Escape` / 外クリックで閉じる
+
+---
+
+### 2. Object list improvements (`ObjectListManager.js` 拡張)
+
+**現状:** 名前のみのリスト
+
+**追加内容:**
+
+| 機能 | 実装 |
+|------|------|
+| 寸法表示 (W×D×H) | `sketch.getBounds()` から計算、リストアイテムに小テキスト追加 |
+| 表示切替 (👁) | 各アイテムに目アイコンボタン、`mesh.visible` トグル |
+| ダブルクリックでリネーム | `contenteditable` または `<input>` インライン編集 |
+| ドラッグ&ドロップ並び替え | HTML5 Drag API / `stateManager.sketches` 配列の順序変更 |
+
+**キーボード:** `H` キーは現在 HistoryPanel に割り当て済みのため、オブジェクト非表示は右クリックメニュー経由のみとする
+
+---
+
+### 3. Measurement tools (`MeasurementManager.js`)
+
+**機能一覧:**
+
+| ツール | 操作 | 表示 |
+|--------|------|------|
+| 距離計測 | 2点クリック | スプライト注釈 + 寸法線 |
+| 面積計測 | 面をクリック | 面上にスプライト |
+| クリア | `M` キー または Clear ボタン | 全注釈削除 |
+
+**実装ポイント:**
+- 計測モードは `StateManager` に `'measure'` モードを追加、またはフラグ管理
+- 注釈は `THREE.Sprite` + `CanvasTexture`（既存の寸法線実装を流用）
+- 面積は `THREE.Triangle` で面ポリゴンを分割して積算
+- 計測結果はツールバーに専用トグルボタンを追加
+
+---
+
+### 技術的注意点
+
+- **Context menu と H キー競合なし:** ContextMenu は右クリック起動、History panel は `H` キー
+- **Object list の `H` キー:** UX_BACKLOG 旧仕様には `H` キーで hide と書かれていたが、History panel に割り当て済みのため **右クリックメニューの Hide/Show のみ** とする
+- **Measurement の寸法線:** `InteractionManager.createSketchExtrusionDimensionText()` の実装を `MeasurementManager` に切り出して共通化することを検討
