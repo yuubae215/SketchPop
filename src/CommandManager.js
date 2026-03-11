@@ -280,12 +280,12 @@ export class CommandManager {
         const undoBtn = document.getElementById('top-undo');
         if (undoBtn) {
             undoBtn.disabled = !this.canUndo();
-            undoBtn.title = `元に戻す (Ctrl+Z)${this.canUndo() ? '' : ' — 操作なし'}`;
+            undoBtn.title = `Undo (Ctrl+Z)${this.canUndo() ? '' : ' — nothing to undo'}`;
         }
         const redoBtn = document.getElementById('top-redo');
         if (redoBtn) {
             redoBtn.disabled = !this.canRedo();
-            redoBtn.title = `やり直し (Ctrl+Y)${this.canRedo() ? '' : ' — 操作なし'}`;
+            redoBtn.title = `Redo (Ctrl+Y)${this.canRedo() ? '' : ' — nothing to redo'}`;
         }
     }
 

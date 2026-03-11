@@ -25,10 +25,10 @@ export class StatusBarManager {
         this.state.mode = mode;
         if (this.elements.currentMode) {
             const modeNames = {
-                'sketch':    'スケッチ',
-                'extrude':   '押し出し',
-                'select':    '選択',
-                'transform': '変形'
+                'sketch':    'Sketch',
+                'extrude':   'Extrude',
+                'select':    'Select',
+                'transform': 'Transform'
             };
             this.elements.currentMode.textContent = modeNames[mode] || mode;
         }
@@ -56,12 +56,12 @@ export class StatusBarManager {
         const isMobile = 'ontouchstart' in window;
 
         const hints = {
-            'sketch':    isMobile ? 'タップしてスケッチ開始' : 'クリックしてスケッチ開始',
-            'extrude':   isMobile ? 'ドラッグで高さ設定、タップで確定' : 'マウスで高さ設定、クリックで確定',
+            'sketch':    isMobile ? 'Tap to start sketch' : 'Click to start sketch',
+            'extrude':   isMobile ? 'Drag to set height, tap to confirm' : 'Move mouse to set height, click to confirm',
             'select':    this.state.selectedObject
-                ? (isMobile ? 'タップで選択解除' : 'G: 移動  R: 回転  Delete: 削除')
-                : (isMobile ? 'オブジェクトをタップ' : 'オブジェクトをクリック'),
-            'transform': '変形中'
+                ? (isMobile ? 'Tap to deselect' : 'G: Move  R: Rotate  Delete: Delete')
+                : (isMobile ? 'Tap an object' : 'Click an object'),
+            'transform': 'Transforming'
         };
 
         this.elements.operationHint.textContent = hints[this.state.mode] || '';

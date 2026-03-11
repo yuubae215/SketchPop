@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,42 +16,42 @@
             <div class="top-bar__section top-bar__left">
                 <span class="top-bar__logo">SketchPop</span>
                 <div class="top-bar__sep"></div>
-                <button id="top-undo" class="tb-btn" title="元に戻す (Ctrl+Z)" disabled>
+                <button id="top-undo" class="tb-btn" title="Undo (Ctrl+Z)" disabled>
                     <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" fill="currentColor"/></svg>
                 </button>
-                <button id="top-redo" class="tb-btn" title="やり直し (Ctrl+Y)" disabled>
+                <button id="top-redo" class="tb-btn" title="Redo (Ctrl+Y)" disabled>
                     <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" fill="currentColor"/></svg>
                 </button>
             </div>
 
             <!-- Center: mode buttons -->
             <div class="top-bar__section top-bar__center">
-                <button id="sidebar-sketch" class="tb-mode-btn active" title="スケッチ (S)">
+                <button id="sidebar-sketch" class="tb-mode-btn active" title="Sketch (S)">
                     <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg>
-                    スケッチ
+                    Sketch
                 </button>
-                <button id="sidebar-extrude" class="tb-mode-btn" title="押し出し (E)">
+                <button id="sidebar-extrude" class="tb-mode-btn" title="Extrude (E)">
                     <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z" fill="currentColor"/></svg>
-                    押し出し
+                    Extrude
                 </button>
-                <button id="sidebar-select" class="tb-mode-btn" title="選択 (V)">
+                <button id="sidebar-select" class="tb-mode-btn" title="Select (V)">
                     <svg viewBox="0 0 24 24"><path d="M4 4l4 16 3-7 7-3L4 4z" fill="currentColor"/></svg>
-                    選択
+                    Select
                 </button>
             </div>
 
             <!-- Right: object actions + view controls -->
             <div class="top-bar__section top-bar__right">
-                <button id="top-duplicate" class="tb-btn" title="複製 (Ctrl+D)" disabled>
+                <button id="top-duplicate" class="tb-btn" title="Duplicate (Ctrl+D)" disabled>
                     <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/></svg>
                 </button>
-                <button id="sidebar-clear" class="tb-btn tb-btn--danger" title="全消去">
+                <button id="sidebar-clear" class="tb-btn tb-btn--danger" title="Clear all">
                     <svg viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 </button>
                 <div class="top-bar__sep"></div>
-                <button id="perspective-btn" class="tb-btn active" title="透視投影 (P)">P</button>
-                <button id="orthographic-btn" class="tb-btn" title="平行投影 (O)">O</button>
-                <button id="home-btn" class="tb-btn" title="全体表示 (F)">
+                <button id="perspective-btn" class="tb-btn active" title="Perspective (P)">P</button>
+                <button id="orthographic-btn" class="tb-btn" title="Orthographic (O)">O</button>
+                <button id="home-btn" class="tb-btn" title="Fit all (F)">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/></svg>
                 </button>
             </div>
@@ -61,13 +61,13 @@
             <!-- Property Panel (right slide-in, shown when object selected) -->
             <div id="property-panel">
                 <div class="prop-header">
-                    <span id="prop-obj-name" class="prop-title">プロパティ</span>
-                    <button id="prop-panel-close" class="prop-close" title="閉じる">×</button>
+                    <span id="prop-obj-name" class="prop-title">Properties</span>
+                    <button id="prop-panel-close" class="prop-close" title="Close">×</button>
                 </div>
                 <div class="prop-body">
                     <!-- Position -->
                     <div class="prop-section">
-                        <div class="prop-section-label">位置</div>
+                        <div class="prop-section-label">Position</div>
                         <div class="prop-row">
                             <span class="prop-label prop-label--x">X</span>
                             <input class="prop-input" type="number" id="prop-pos-x" step="0.1">
@@ -83,7 +83,7 @@
                     </div>
                     <!-- Dimensions -->
                     <div class="prop-section">
-                        <div class="prop-section-label">寸法</div>
+                        <div class="prop-section-label">Dimensions</div>
                         <div class="prop-row">
                             <span class="prop-label">W</span>
                             <input class="prop-input readonly" type="number" id="prop-dim-w" step="0.1" readonly>
@@ -102,13 +102,13 @@
 
             <!-- Confirm / Cancel (shown while drawing or extruding) -->
             <div id="confirmationControls" style="display: none;">
-                <button id="confirmShape" class="confirm-btn confirm-btn--ok">✓ 確定</button>
-                <button id="cancelShape" class="confirm-btn confirm-btn--cancel">✗ キャンセル</button>
+                <button id="confirmShape" class="confirm-btn confirm-btn--ok">✓ Confirm</button>
+                <button id="cancelShape" class="confirm-btn confirm-btn--cancel">✗ Cancel</button>
             </div>
 
             <!-- Minimal status bar -->
             <div id="status-bar">
-                <span id="current-mode">スケッチ</span>
+                <span id="current-mode">Sketch</span>
                 <span id="operation-hint"></span>
             </div>
         </div>

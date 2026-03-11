@@ -81,7 +81,7 @@ export class InteractionManager {
         document.getElementById('sidebar-clear').addEventListener('click', () => {
             this.stateManager.clearAll(this.sceneManager);
             this.propertyPanelManager.hide();
-            ToastManager.show('シーンを消去しました', 'info');
+            ToastManager.show('Scene cleared', 'info');
         });
 
         // Undo / Redo buttons
@@ -105,14 +105,14 @@ export class InteractionManager {
             if (this.sceneManager.isPerspective) return;
             this.statusBarManager.updateCameraType('perspective');
             this._syncProjectionButtons(true);
-            ToastManager.show('透視投影に切り替えました', 'info');
+            ToastManager.show('Switched to perspective', 'info');
         });
 
         document.getElementById('orthographic-btn').addEventListener('click', () => {
             if (!this.sceneManager.isPerspective) return;
             this.statusBarManager.updateCameraType('orthographic');
             this._syncProjectionButtons(false);
-            ToastManager.show('平行投影に切り替えました', 'info');
+            ToastManager.show('Switched to orthographic', 'info');
         });
 
         // Home button
@@ -315,7 +315,7 @@ export class InteractionManager {
                 this.commandManager.push(
                     CommandManager.createExtrude(sketchForUndo, this.sceneManager, this.stateManager)
                 );
-                ToastManager.show('オブジェクトを作成しました', 'success');
+                ToastManager.show('Object created', 'success');
             }
         } else {
             for (let sketch of this.stateManager.sketches) {
@@ -892,10 +892,10 @@ export class InteractionManager {
                 this.propertyPanelManager.hide();
                 this.commandManager.push(deleteCmd);
                 this.updateSidebarIcons();
-                ToastManager.show('オブジェクトを削除しました', 'info');
+                ToastManager.show('Object deleted', 'info');
             }
         } else {
-            ToastManager.show('削除するオブジェクトを選択してください', 'warning');
+            ToastManager.show('Select an object to delete', 'warning');
         }
     }
 
@@ -911,13 +911,13 @@ export class InteractionManager {
     handleDuplicate() {
         const selectedObj = this.stateManager.selectedObject;
         if (!selectedObj) {
-            ToastManager.show('複製するオブジェクトを選択してください', 'warning');
+            ToastManager.show('Select an object to duplicate', 'warning');
             return;
         }
 
         const original = selectedObj.userData.sketchRectangle;
         if (!original || !original.isExtruded) {
-            ToastManager.show('押し出し済みのオブジェクトのみ複製できます', 'warning');
+            ToastManager.show('Only extruded objects can be duplicated', 'warning');
             return;
         }
 
@@ -950,7 +950,7 @@ export class InteractionManager {
         // Auto-select the duplicate
         this._contextSelectObject(dup.extrudedMesh, null);
 
-        ToastManager.show('オブジェクトを複製しました', 'success');
+        ToastManager.show('Object duplicated', 'success');
     }
 
     getFaceFromIntersection(intersect) {
