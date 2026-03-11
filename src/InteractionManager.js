@@ -13,6 +13,8 @@ import { ProjectManager } from './ProjectManager.js';
 import { CommandPaletteManager } from './CommandPaletteManager.js';
 import { HistoryPanelManager } from './HistoryPanelManager.js';
 import { DisplayModeManager } from './DisplayModeManager.js';
+import { ContextMenuManager } from './ContextMenuManager.js';
+import { MeasurementManager } from './MeasurementManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -52,6 +54,11 @@ export class InteractionManager {
         this.commandPaletteManager = new CommandPaletteManager();
         this._hookHistoryRefresh();
         this._registerPaletteCommands();
+
+        // Polish sprint
+        this.contextMenuManager = new ContextMenuManager();
+        this._setupContextMenuCallbacks();
+        this.measurementManager = new MeasurementManager(sceneManager, stateManager);
     }
 
     setupEventListeners() {
@@ -146,6 +153,10 @@ export class InteractionManager {
         // Grid snap toggle
         const snapBtn = document.getElementById('top-snap');
         if (snapBtn) snapBtn.addEventListener('click', () => this._toggleGridSnap());
+
+        // Measurement toggle
+        const measureBtn = document.getElementById('top-measure');
+        if (measureBtn) measureBtn.addEventListener('click', () => this._toggleMeasurement());
 
         // History panel toggle
         const histBtn = document.getElementById('top-history');
@@ -501,6 +512,8 @@ export class InteractionManager {
 
     onRightClick(event) {
         event.preventDefault();
+
+        // During active extrusion: right-click = confirm (existing behaviour)
         if (this.stateManager.isExtruding && this.stateManager.selectedSketch) {
             const sketchForUndo = this.stateManager.selectedSketch;
             this.stateManager.finishExtrusion();
@@ -511,7 +524,9 @@ export class InteractionManager {
                     CommandManager.createExtrude(sketchForUndo, this.sceneManager, this.stateManager)
                 );
             }
-        } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
+            return;
+        }
+        if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion) {
             if (Math.abs(this.stateManager.currentFaceExtrusion.extrudeDistance) > 0.1) {
                 this._confirmFaceExtrusionWithUndo();
             } else {
@@ -519,7 +534,62 @@ export class InteractionManager {
             }
             this.clearSketchExtrusionDimensions();
             this._clearNumericInput();
+            return;
         }
+
+        // Otherwise: show context menu
+        const intersection = this.sceneManager.getMouseIntersection(event);
+        const context = this._detectContext(event, intersection);
+
+        if (context.type === 'object' || context.type === 'face') {
+            const sketch = context.mesh
+                ? context.mesh.userData.sketchRectangle
+                : (this.stateManager.selectedObject ? this.stateManager.selectedObject.userData.sketchRectangle : null);
+            if (sketch) {
+                this.contextMenuManager.showForObject(event, sketch);
+            }
+        } else {
+            this.contextMenuManager.showForEmpty(event, intersection);
+        }
+    }
+
+    _setupContextMenuCallbacks() {
+        this.contextMenuManager.setCallbacks({
+            rename: (sketch) => {
+                if (this.stateManager.objectListManager) {
+                    this.stateManager.objectListManager.startRename(sketch.objectId);
+                }
+            },
+            duplicate: (sketch) => {
+                // Select the sketch's mesh first so handleDuplicate works
+                if (sketch.extrudedMesh) {
+                    this._contextSelectObject(sketch.extrudedMesh, null);
+                }
+                this.handleDuplicate();
+            },
+            toggleVisibility: (sketch) => {
+                if (this.stateManager.objectListManager) {
+                    this.stateManager.objectListManager.toggleVisibility(sketch.objectId);
+                }
+            },
+            delete: (sketch) => {
+                if (sketch.extrudedMesh) {
+                    this._contextSelectObject(sketch.extrudedMesh, null);
+                }
+                this.handleDeleteSelected();
+            },
+            sketchHere: (worldPos) => {
+                this.stateManager.setMode('sketch');
+                this.updateSidebarIcons();
+                if (worldPos) {
+                    const snapped = this.gridSnapManager.snapPoint(worldPos.clone());
+                    this.handleSketchClick({ point: snapped });
+                }
+            },
+            resetView: () => {
+                this.sceneManager.fitAllObjects();
+            },
+        });
     }
 
     // ── Touch helpers ─────────────────────────────────────────────────────
@@ -708,6 +778,13 @@ export class InteractionManager {
                 this.sceneManager.setCameraView('top');
                 break;
             case 'escape':
+                if (this.measurementManager && this.measurementManager.isActive) {
+                    this.measurementManager.setMode('off');
+                    this.measurementManager.clearAll();
+                    const btn = document.getElementById('top-measure');
+                    if (btn) btn.classList.remove('active');
+                    break;
+                }
                 if (this.stateManager.isExtruding || this.stateManager.isFaceExtruding) {
                     this._clearNumericInput();
                     this.cancelExtrusion();
@@ -718,6 +795,11 @@ export class InteractionManager {
                 break;
             case 'delete':
                 this.handleDeleteSelected();
+                break;
+            case 'm':
+                if (!event.ctrlKey && !event.metaKey) {
+                    this._toggleMeasurement();
+                }
                 break;
         }
 
@@ -1043,6 +1125,23 @@ export class InteractionManager {
         this.projectManager.loadFromFile();
     }
 
+    // ── Measurement ───────────────────────────────────────────────────────
+
+    _toggleMeasurement() {
+        this.measurementManager.cycleMode();
+        const mode = this.measurementManager.mode;
+        const btn = document.getElementById('top-measure');
+        if (btn) btn.classList.toggle('active', mode !== 'off');
+
+        const modeLabels = { off: 'off', distance: 'Distance', area: 'Area' };
+        if (mode === 'off') {
+            this.measurementManager.clearAll();
+            ToastManager.show('Measurement off', 'info');
+        } else {
+            ToastManager.show(`Measurement: ${modeLabels[mode]}`, 'info');
+        }
+    }
+
     // ── Grid snap ─────────────────────────────────────────────────────────
 
     _toggleGridSnap() {
@@ -1182,6 +1281,11 @@ export class InteractionManager {
 
             // ── Panels ──
             { id: 'panel-history',  label: 'Toggle history panel', shortcut: 'H',   action: () => im.historyPanelManager.toggle() },
+
+            // ── Measurement ──
+            { id: 'measure-distance', label: 'Measure: Distance',  shortcut: 'M',   action: () => { im.measurementManager.setMode('distance'); const b = document.getElementById('top-measure'); if(b) b.classList.add('active'); ToastManager.show('Measurement: Distance', 'info'); } },
+            { id: 'measure-area',     label: 'Measure: Face Area',  shortcut: '',    action: () => { im.measurementManager.setMode('area'); const b = document.getElementById('top-measure'); if(b) b.classList.add('active'); ToastManager.show('Measurement: Face Area', 'info'); } },
+            { id: 'measure-clear',    label: 'Clear measurements',  shortcut: '',    action: () => { im.measurementManager.clearAll(); im.measurementManager.setMode('off'); const b = document.getElementById('top-measure'); if(b) b.classList.remove('active'); ToastManager.show('Measurements cleared', 'info'); } },
         ]);
     }
 }
