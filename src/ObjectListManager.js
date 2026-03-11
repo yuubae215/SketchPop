@@ -161,4 +161,3 @@ export class ObjectListManager {
         return selectedSketch.extrudedMesh || null;
     }
 }
-    // Note: restoreSketchObject added below via patch
