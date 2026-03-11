@@ -40,7 +40,7 @@ export class AxisTriad {
         this.triadCamera.position.set(0, 0, 5);
         this.triadCamera.lookAt(0, 0, 0);
 
-        // ライトを追加して立体感を出す
+        // Add lights to give a 3D appearance
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
 

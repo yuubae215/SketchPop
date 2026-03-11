@@ -2,8 +2,8 @@
  * ToastManager — non-blocking toast notifications.
  *
  * Usage:
- *   ToastManager.show('オブジェクトを作成しました', 'success');
- *   ToastManager.show('選択されたオブジェクトがありません', 'warning');
+ *   ToastManager.show('Object created', 'success');
+ *   ToastManager.show('No object selected', 'warning');
  *
  * Types: 'success' | 'info' | 'warning' | 'error'
  * Auto-dismisses after `duration` ms (default 3500).
@@ -42,7 +42,7 @@ export class ToastManager {
 
         toast.innerHTML = `<span class="toast-icon">${ICONS[type] ?? 'ℹ'}</span>
 <span class="toast-msg">${message}</span>
-<button class="toast-close" aria-label="閉じる">×</button>`;
+<button class="toast-close" aria-label="Close">×</button>`;
 
         const dismiss = () => {
             toast.classList.add('toast--out');
