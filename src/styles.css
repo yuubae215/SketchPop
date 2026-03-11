@@ -33,118 +33,133 @@ body {
 }
 
 /* ============================
-   Top-right controls (P / O / Home)
+   Unified top bar
    ============================ */
-#top-controls {
-    position: absolute;
-    top: 12px;
-    right: 12px;
+#top-bar {
+    height: 48px;
+    background: rgba(22, 22, 26, 0.98);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     display: flex;
-    gap: 6px;
-    z-index: 100;
+    align-items: center;
+    gap: 0;
+    padding: 0 8px;
+    flex-shrink: 0;
+    user-select: none;
+    z-index: 200;
 }
 
-.ctrl-btn {
-    width: 44px;
-    height: 44px;
-    background: rgba(42, 42, 42, 0.92);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 8px;
-    color: #fff;
-    font-size: 13px;
+.top-bar__section {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.top-bar__left  { flex: 1; justify-content: flex-start; }
+.top-bar__center { flex: 0 0 auto; gap: 2px; }
+.top-bar__right  { flex: 1; justify-content: flex-end; }
+
+.top-bar__logo {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ff6b35;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+}
+
+.top-bar__sep {
+    width: 1px;
+    height: 24px;
+    background: rgba(255,255,255,0.12);
+    margin: 0 4px;
+}
+
+/* Generic toolbar button */
+.tb-btn {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #bbb;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(8px);
-    transition: background 0.18s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
     -webkit-tap-highlight-color: transparent;
-}
-
-.ctrl-btn:hover,
-.ctrl-btn:active {
-    background: rgba(74, 144, 226, 0.85);
-}
-
-.ctrl-btn.active {
-    background: rgba(255, 107, 53, 0.9);
-}
-
-.ctrl-btn svg {
-    width: 22px;
-    height: 22px;
-}
-
-/* ============================
-   Mode toolbar — desktop (right edge, vertical)
-   ============================ */
-#mode-toolbar {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    z-index: 100;
-    background: rgba(30, 30, 30, 0.92);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 8px 6px;
-    backdrop-filter: blur(10px);
-}
-
-.mode-btn {
-    width: 56px;
-    min-height: 56px;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    color: #ccc;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 6px 4px;
-    transition: background 0.18s, color 0.18s;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.mode-btn svg {
-    width: 26px;
-    height: 26px;
-    fill: currentColor;
     flex-shrink: 0;
 }
 
-.mode-label {
-    font-size: 10px;
-    white-space: nowrap;
-    line-height: 1;
+.tb-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
-.mode-btn:hover,
-.mode-btn:active {
+.tb-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-color: rgba(255,255,255,0.1);
+}
+
+.tb-btn:active {
+    background: rgba(255,255,255,0.13);
+}
+
+.tb-btn.active {
+    background: rgba(255, 107, 53, 0.18);
+    color: #ff6b35;
+    border-color: rgba(255, 107, 53, 0.35);
+}
+
+.tb-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+}
+
+.tb-btn--danger:hover {
+    background: rgba(220, 53, 69, 0.18);
+    color: #ff4757;
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+/* Mode buttons in center — slightly wider with text */
+.tb-mode-btn {
+    height: 36px;
+    padding: 0 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #999;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+}
+
+.tb-mode-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.tb-mode-btn:hover {
     background: rgba(255,255,255,0.08);
     color: #fff;
 }
 
-.mode-btn.active {
-    background: rgba(255, 107, 53, 0.25);
+.tb-mode-btn.active {
+    background: rgba(255, 107, 53, 0.18);
     color: #ff6b35;
-}
-
-.mode-btn--danger {
-    color: #999;
-}
-
-.mode-btn--danger:hover,
-.mode-btn--danger:active {
-    background: rgba(220, 53, 69, 0.2);
-    color: #ff4757;
+    border-color: rgba(255, 107, 53, 0.4);
+    font-weight: 600;
 }
 
 /* ============================
@@ -224,30 +239,24 @@ body {
 
 /* ============================
    Mobile layout (≤ 640px)
-   When on touch device, move toolbar to bottom
    ============================ */
 @media (max-width: 640px) {
-    /* Move mode toolbar to bottom center, horizontal */
-    #mode-toolbar {
-        top: auto;
-        bottom: 44px; /* above status bar */
-        right: 50%;
-        transform: translateX(50%);
-        flex-direction: row;
-        padding: 6px 10px;
-        border-radius: 40px;
-        gap: 4px;
+    #top-bar {
+        height: 52px;
+        padding: 0 4px;
     }
 
-    .mode-btn {
-        width: 52px;
-        min-height: 52px;
+    .top-bar__logo {
+        display: none;
     }
 
-    /* Top controls: slightly larger */
-    .ctrl-btn {
-        width: 48px;
-        height: 48px;
+    .top-bar__sep {
+        display: none;
+    }
+
+    .tb-mode-btn {
+        padding: 0 8px;
+        font-size: 11px;
     }
 
     /* Status bar taller */
@@ -257,7 +266,7 @@ body {
     }
 
     #confirmationControls {
-        bottom: 108px;
+        bottom: 48px;
     }
 
     .confirm-btn {
@@ -409,3 +418,90 @@ body {
 #canvas-container.ctx-extrude  { cursor: ns-resize; }
 #canvas-container.ctx-select   { cursor: pointer; }
 #canvas-container.ctx-face     { cursor: grab; }
+
+/* ============================
+   Toast / notification system
+   ============================ */
+#toast-container {
+    position: fixed;
+    top: 58px;   /* below top-bar */
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9000;
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 220px;
+    max-width: 340px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(30, 30, 36, 0.96);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.45);
+    pointer-events: all;
+    opacity: 0;
+    transform: translateX(24px);
+}
+
+.toast--in {
+    animation: toast-enter 0.22s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+.toast--out {
+    animation: toast-leave 0.18s ease-in forwards;
+}
+
+@keyframes toast-enter {
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toast-leave {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(20px); }
+}
+
+.toast-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.toast-msg {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+    pointer-events: all;
+}
+.toast-close:hover { color: #fff; }
+
+/* Type accent colours */
+.toast--success { border-left: 3px solid #28a745; }
+.toast--success .toast-icon { color: #28a745; }
+
+.toast--info    { border-left: 3px solid #4a90e2; }
+.toast--info    .toast-icon { color: #4a90e2; }
+
+.toast--warning { border-left: 3px solid #ff9500; }
+.toast--warning .toast-icon { color: #ff9500; }
+
+.toast--error   { border-left: 3px solid #dc3545; }
+.toast--error   .toast-icon { color: #dc3545; }

@@ -52,6 +52,31 @@ Selecting any extruded object slides in a panel from the right showing:
 
 Implemented in `PropertyPanelManager.js`. Shown on click-select, hidden on Escape or deselect. Updates during TransformControls drag.
 
+### [DONE] Unified toolbar / UI consolidation — Sprint 2026-03-11
+Floating `#top-controls` (P/O/Home) and `#mode-toolbar` (Sketch/Extrude/Select/Clear) were removed.
+Replaced by a single `#top-bar` spanning the full width:
+- **Left**: App logo + Undo / Redo buttons (enabled/disabled state via CommandManager)
+- **Center**: Sketch / Extrude / Select mode buttons (active highlight)
+- **Right**: Duplicate + Clear + separator + P / O / Home view controls
+
+CSS classes: `#top-bar`, `.tb-btn`, `.tb-mode-btn`, `.top-bar__section`.
+Mobile: logo and separators collapse; buttons remain reachable.
+
+### [DONE] Notification / toast system — Sprint 2026-03-11
+`ToastManager.js` — singleton that creates accessible, stacking toasts in `#toast-container`.
+- `ToastManager.show(message, type, duration)` — type: success | info | warning | error
+- Auto-dismiss after 3.5 s (configurable); manual × close button
+- CSS enter/leave animations; left-border accent colour per type
+- Integrated in: object creation, deletion, duplication, camera projection switch, clear-all, selection warnings
+
+### [DONE] Duplicate (Ctrl+D) — Sprint 2026-03-11
+`Ctrl+D` (or ⌘D) duplicates the currently selected extruded object:
+- Offset by +1.5 on X and Z to avoid stacking
+- Duplicate auto-selected and property panel opened
+- Full undo/redo support via `DuplicateCommand` in `CommandManager`
+- Toolbar button in top-bar right section (enabled only when object selected)
+- Warning toast if no object selected or object not yet extruded
+
 ### [DONE] Context-sensitive operations (mode-free interaction) — Sprint 2026-03-11
 All clicks are now context-aware regardless of active mode:
 
@@ -75,7 +100,7 @@ Face highlight shown in all modes (not only extrude mode). Cursor shape reflects
 
 ---
 
-### 🟠 [TODO] Unified toolbar / UI consolidation
+### ✅ [DONE] Unified toolbar / UI consolidation
 
 Current state: mode icons, selection toggle, projection toggle, home button float independently.
 
@@ -108,7 +133,7 @@ Includes object snap (edge, vertex, face-center) and angle snap (15°, 45°, 90�
 
 ---
 
-### 🟠 [TODO] Duplicate / Mirror
+### ✅ [DONE] Duplicate (Ctrl+D)
 
 - Duplicate selected object: `Ctrl+D`
 - Mirror on X / Y / Z axis
@@ -130,7 +155,7 @@ Accessible via a top-bar "File" menu or keyboard shortcut.
 
 ---
 
-### 🟠 [TODO] Notification / toast system
+### ✅ [DONE] Notification / toast system
 
 Non-blocking toasts (top-right) for user feedback:
 - ✅ Success (green): "オブジェクトを作成しました"
@@ -210,7 +235,7 @@ Reference: Blender outliner, Fusion 360 browser.
 | Sprint | Focus | Items |
 |--------|-------|-------|
 | ✅ Done | Core usability | Context-sensitive ops, Property panel, Redo |
-| Next | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
-| +1 | Data & output | Export, Project save/load, Grid snapping |
-| +2 | Power-user | Command palette, History timeline, Display modes |
-| +3 | Polish | Object list improvements, Measurement tools |
+| ✅ Done | Toolbar & feedback | Unified toolbar, Notification system, Duplicate |
+| Next | Data & output | Export, Project save/load, Grid snapping |
+| +1 | Power-user | Command palette, History timeline, Display modes |
+| +2 | Polish | Object list improvements, Measurement tools |

@@ -200,6 +200,39 @@ class FaceExtrudeCommand {
 }
 
 // ─────────────────────────────────────────────
+// Command: duplicate a sketch (2-D or extruded)
+// ─────────────────────────────────────────────
+class DuplicateCommand {
+    constructor(original, duplicate, sceneManager, stateManager) {
+        this.original = original;
+        this.duplicate = duplicate;
+        this.sceneManager = sceneManager;
+        this.stateManager = stateManager;
+    }
+
+    undo() {
+        const dup = this.duplicate;
+        if (dup.mesh) this.sceneManager.removeFromScene(dup.mesh);
+        if (dup.extrudedMesh) this.sceneManager.removeFromScene(dup.extrudedMesh);
+        dup.clearDimensions();
+        this.stateManager.removeSketch(dup);
+    }
+
+    redo() {
+        const dup = this.duplicate;
+        if (dup.mesh) this.sceneManager.addToScene(dup.mesh);
+        if (dup.isExtruded && dup.extrudedMesh) this.sceneManager.addToScene(dup.extrudedMesh);
+        if (!this.stateManager.sketches.includes(dup)) {
+            this.stateManager.sketches.push(dup);
+            this.stateManager.updateShapeCount();
+            if (this.stateManager.objectListManager) {
+                this.stateManager.objectListManager.restoreSketchObject(dup);
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────
 // CommandManager
 // ─────────────────────────────────────────────
 export class CommandManager {
@@ -244,15 +277,15 @@ export class CommandManager {
     canRedo() { return this.redoStack.length > 0; }
 
     _updateUI() {
-        const undoBtn = document.getElementById('sidebar-undo');
+        const undoBtn = document.getElementById('top-undo');
         if (undoBtn) {
-            undoBtn.classList.toggle('disabled', !this.canUndo());
-            undoBtn.title = `Undo (Ctrl+Z)${this.canUndo() ? '' : ' — nothing to undo'}`;
+            undoBtn.disabled = !this.canUndo();
+            undoBtn.title = `元に戻す (Ctrl+Z)${this.canUndo() ? '' : ' — 操作なし'}`;
         }
-        const redoBtn = document.getElementById('sidebar-redo');
+        const redoBtn = document.getElementById('top-redo');
         if (redoBtn) {
-            redoBtn.classList.toggle('disabled', !this.canRedo());
-            redoBtn.title = `Redo (Ctrl+Y)${this.canRedo() ? '' : ' — nothing to redo'}`;
+            redoBtn.disabled = !this.canRedo();
+            redoBtn.title = `やり直し (Ctrl+Y)${this.canRedo() ? '' : ' — 操作なし'}`;
         }
     }
 
@@ -272,5 +305,9 @@ export class CommandManager {
 
     static createFaceExtrude(snapshot) {
         return new FaceExtrudeCommand(snapshot);
+    }
+
+    static createDuplicate(original, duplicate, sceneManager, stateManager) {
+        return new DuplicateCommand(original, duplicate, sceneManager, stateManager);
     }
 }
