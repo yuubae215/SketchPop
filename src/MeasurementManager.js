@@ -263,21 +263,20 @@ export class MeasurementManager {
         canvas.height = 64;
         const ctx = canvas.getContext('2d');
 
-        ctx.fillStyle = 'rgba(0,0,0,0.75)';
-        ctx.beginPath();
-        ctx.roundRect(0, 0, 256, 64, 8);
-        ctx.fill();
-
-        ctx.strokeStyle = hex;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.roundRect(2, 2, 252, 60, 7);
-        ctx.stroke();
-
-        ctx.fillStyle = hex;
         ctx.font = 'bold 26px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+
+        // Shadow for contrast without background
+        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+        ctx.shadowBlur = 6;
+        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+        ctx.lineWidth = 5;
+        ctx.lineJoin = 'round';
+        ctx.strokeText(text, 128, 32);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = hex;
         ctx.fillText(text, 128, 32);
 
         const texture = new THREE.CanvasTexture(canvas);
