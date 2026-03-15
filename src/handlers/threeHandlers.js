@@ -49,8 +49,9 @@ class SceneHandler {
             opacity: 0 
         });
         const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+        groundMesh.name = 'ground';
         groundMesh.rotation.x = -Math.PI / 2;
-        
+
         this.scene.add(groundMesh);
         return groundMesh;
     }
