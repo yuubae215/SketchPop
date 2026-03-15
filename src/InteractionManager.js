@@ -1380,14 +1380,28 @@ export class InteractionManager {
         const sel = this.stateManager.selectedObject;
         if (!sel) { ToastManager.show('Select an object first', 'warning'); return; }
         const sketch = sel.userData?.sketchRectangle;
-        if (!sketch) return;
+        if (!sketch || !sketch.extrudedMesh) return;
+
+        // Snapshot geometry BEFORE the operation for undo
+        const oldGeometry = sketch.extrudedMesh.geometry.clone();
 
         if (this.filletManager.hasOperation(sketch)) {
             this.filletManager.reset(sketch);
+            const newGeometry = sketch.extrudedMesh.geometry.clone();
+            this.commandManager.push(CommandManager.createFillet({
+                sketch, oldGeometry, newGeometry, filletOp: null
+            }));
             ToastManager.show('Fillet removed', 'info');
         } else {
             const ok = this.filletManager.fillet(sketch, amount);
-            if (ok) ToastManager.show(`Fillet r=${amount}`, 'success');
+            if (ok) {
+                const newGeometry = sketch.extrudedMesh.geometry.clone();
+                this.commandManager.push(CommandManager.createFillet({
+                    sketch, oldGeometry, newGeometry,
+                    filletOp: { type: 'fillet', amount }
+                }));
+                ToastManager.show(`Fillet r=${amount}`, 'success');
+            }
         }
     }
 
@@ -1395,14 +1409,28 @@ export class InteractionManager {
         const sel = this.stateManager.selectedObject;
         if (!sel) { ToastManager.show('Select an object first', 'warning'); return; }
         const sketch = sel.userData?.sketchRectangle;
-        if (!sketch) return;
+        if (!sketch || !sketch.extrudedMesh) return;
+
+        // Snapshot geometry BEFORE the operation for undo
+        const oldGeometry = sketch.extrudedMesh.geometry.clone();
 
         if (this.filletManager.hasOperation(sketch)) {
             this.filletManager.reset(sketch);
+            const newGeometry = sketch.extrudedMesh.geometry.clone();
+            this.commandManager.push(CommandManager.createFillet({
+                sketch, oldGeometry, newGeometry, filletOp: null
+            }));
             ToastManager.show('Chamfer removed', 'info');
         } else {
             const ok = this.filletManager.chamfer(sketch, amount);
-            if (ok) ToastManager.show(`Chamfer c=${amount}`, 'success');
+            if (ok) {
+                const newGeometry = sketch.extrudedMesh.geometry.clone();
+                this.commandManager.push(CommandManager.createFillet({
+                    sketch, oldGeometry, newGeometry,
+                    filletOp: { type: 'chamfer', amount }
+                }));
+                ToastManager.show(`Chamfer c=${amount}`, 'success');
+            }
         }
     }
 
@@ -1419,9 +1447,26 @@ export class InteractionManager {
 
         const sketchA = meshA.userData?.sketchRectangle;
         const sketchB = meshB.userData?.sketchRectangle;
+
+        if (!sketchA || !sketchB) return;
+        if (!sketchA.extrudedMesh || !sketchB.extrudedMesh) return;
+
+        // Snapshot operand meshes BEFORE the operation so undo can restore them
+        const oldMeshA = sketchA.extrudedMesh;
+        const oldMeshB = sketchB.extrudedMesh;
+
         const result = this.booleanManager.operate(type, sketchA, sketchB);
 
         if (result) {
+            this.commandManager.push(
+                CommandManager.createBoolean({
+                    sketchA, sketchB,
+                    oldMeshA, oldMeshB,
+                    resultMesh: result,
+                    sceneManager: this.sceneManager,
+                    stateManager: this.stateManager,
+                })
+            );
             this._secondSelectedObject = null;
             this._contextSelectObject(result, null);
             this.projectManager.triggerAutoSave();

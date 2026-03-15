@@ -69,6 +69,9 @@ export class MeasurementManager {
         this._annotations = [];
         this._cleanupPreview();
         this._pointA = null;
+        // Ensure event listeners are removed even when clearAll() is called
+        // independently of setMode('off'), preventing listener accumulation.
+        this._removeListeners();
     }
 
     get isActive() {

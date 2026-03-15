@@ -175,6 +175,25 @@ export class SelectionModeDOMHandler {
 }
 
 /**
+ * DOM Handler for undo/redo toolbar buttons.
+ * Keeps DOM side effects out of CommandManager (pure command-pattern domain).
+ */
+export class CommandControlsDOMHandler {
+    updateUndoRedo(canUndo, canRedo) {
+        const undoBtn = document.getElementById('top-undo');
+        if (undoBtn) {
+            undoBtn.disabled = !canUndo;
+            undoBtn.title = `Undo (Ctrl+Z)${canUndo ? '' : ' — nothing to undo'}`;
+        }
+        const redoBtn = document.getElementById('top-redo');
+        if (redoBtn) {
+            redoBtn.disabled = !canRedo;
+            redoBtn.title = `Redo (Ctrl+Y)${canRedo ? '' : ' — nothing to redo'}`;
+        }
+    }
+}
+
+/**
  * DOM Handler for confirmation controls
  */
 export class ConfirmationControlsDOMHandler {
