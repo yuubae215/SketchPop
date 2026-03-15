@@ -1,4 +1,4 @@
-import { ProceduralEngine } from './ProceduralEngine.js';
+import { ProceduralEngine } from '../geometry/ProceduralEngine.js';
 
 /**
  * ScriptEditorManager — slide-in panel for the procedural CAD script editor.

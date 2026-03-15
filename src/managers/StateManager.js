@@ -1,9 +1,9 @@
-import { SketchRectangle } from './SketchRectangle.js';
+import { SketchRectangle } from '../geometry/SketchRectangle.js';
 import { ObjectListManager } from './ObjectListManager.js';
 import { SelectionManager } from './SelectionManager.js';
-import { validateRectangleSize } from './utils/geometry.js';
-import { SelectionModeDOMHandler } from './handlers/domHandlers.js';
-import { StateHandler } from './handlers/stateHandler.js';
+import { validateRectangleSize } from '../utils/geometry.js';
+import { SelectionModeDOMHandler } from '../handlers/domHandlers.js';
+import { StateHandler } from '../handlers/stateHandler.js';
 import {
     validateMode,
     validateSelectionMode,
@@ -20,7 +20,7 @@ import {
     shouldShowConfirmationControls,
     createInitialState,
     validateState
-} from './utils/stateUtils.js';
+} from '../utils/stateUtils.js';
 
 export class StateManager {
     constructor() {

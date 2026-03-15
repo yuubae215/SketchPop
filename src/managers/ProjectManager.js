@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SketchRectangle } from './SketchRectangle.js';
+import { SketchRectangle } from '../geometry/SketchRectangle.js';
 
 const LS_KEY = 'sketchpop_autosave';
 const AUTOSAVE_DELAY_MS = 1500;

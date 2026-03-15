@@ -1,16 +1,16 @@
 import * as THREE from 'three';
-import { SelectionHandler } from './handlers/selectionHandler.js';
-import { 
-    calculateSelectionBounds, 
-    calculateOriginPosition, 
-    calculateDimensionLinePositions, 
+import { SelectionHandler } from '../handlers/selectionHandler.js';
+import {
+    calculateSelectionBounds,
+    calculateOriginPosition,
+    calculateDimensionLinePositions,
     calculateExtrudedDimensionPosition,
-    formatOriginCoordinates, 
-    formatDimensionValue, 
-    shouldShowHighlight, 
+    formatOriginCoordinates,
+    formatDimensionValue,
+    shouldShowHighlight,
     extractSketchFromMesh,
-    validateSketchObject 
-} from './utils/selectionUtils.js';
+    validateSketchObject
+} from '../utils/selectionUtils.js';
 
 export class SelectionManager {
     constructor(sceneManager, stateManager) {

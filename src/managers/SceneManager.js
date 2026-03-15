@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { SceneHandler, RenderHandler, InteractionHandler } from './handlers/threeHandlers.js';
+import { SceneHandler, RenderHandler, InteractionHandler } from '../handlers/threeHandlers.js';
 
 export class SceneManager {
     constructor() {
