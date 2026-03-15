@@ -46,29 +46,20 @@ export class StateManager {
         this.updateShapeCount();
         this.objectListManager = new ObjectListManager(this);
         this.setupSelectionModeButtons();
-        
-        // Fix existing objects userData (temporary fix)
+
+        // Ensure userData is populated on all existing sketch meshes (e.g. after project restore)
         this.fixExistingObjectsUserData();
-        
-        // Make debug function available globally for manual fixing
-        window.fixUserData = () => this.fixExistingObjectsUserData();
     }
     
     fixExistingObjectsUserData() {
-        console.log('Fixing existing objects userData...');
-        console.log('Current sketches array:', this.sketches);
-        
         this.sketches.forEach(sketch => {
-            console.log('Processing sketch:', sketch);
             if (sketch.mesh && !sketch.mesh.userData.sketchRectangle) {
                 sketch.mesh.userData.sketchRectangle = sketch;
                 sketch.mesh.userData.objectId = sketch.objectId;
-                console.log('Fixed 2D mesh userData for sketch:', sketch.objectId);
             }
             if (sketch.extrudedMesh && !sketch.extrudedMesh.userData.sketchRectangle) {
                 sketch.extrudedMesh.userData.sketchRectangle = sketch;
                 sketch.extrudedMesh.userData.objectId = sketch.objectId;
-                console.log('Fixed 3D mesh userData for sketch:', sketch.objectId);
             }
         });
     }

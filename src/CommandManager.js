@@ -2,11 +2,15 @@
  * CommandManager: Undo/Redo stack using Command pattern.
  *
  * Supported commands:
- *   AddSketchCommand   - undo removes the sketch from the scene/state
- *   ExtrudeCommand     - undo cancels the extrusion, restoring the 2-D sketch
+ *   AddSketchCommand    - undo removes the sketch from the scene/state
+ *   ExtrudeCommand      - undo cancels the extrusion, restoring the 2-D sketch
  *   DeleteSketchCommand - undo restores the sketch to the scene/state
- *   FaceExtrudeCommand - undo reverts the merged geometry to a snapshot
+ *   FaceExtrudeCommand  - undo reverts the merged geometry to a snapshot
+ *   BooleanCommand      - undo restores both operand meshes and removes result
+ *   FilletCommand       - undo restores the original geometry before fillet/chamfer
  */
+
+import { CommandControlsDOMHandler } from './handlers/domHandlers.js';
 
 const MAX_HISTORY = 50;
 
@@ -112,8 +116,16 @@ class DeleteSketchCommand {
     undo() {
         const sketch = this.sketch;
 
-        // Re-add the sketch to state (fires the object-list side-effect)
-        this.stateManager.addSketch(sketch);
+        // Re-add to internal sketches array directly — bypass addSketch() which
+        // would overwrite sketch.objectId via addSketchObject().
+        if (!this.stateManager.sketches.includes(sketch)) {
+            this.stateManager.sketches.push(sketch);
+            this.stateManager.updateShapeCount();
+            if (this.stateManager.objectListManager) {
+                // restoreSketchObject() preserves the existing objectId in the DOM
+                this.stateManager.objectListManager.restoreSketchObject(sketch);
+            }
+        }
 
         // Restore meshes to the scene
         if (sketch.mesh) this.sceneManager.addToScene(sketch.mesh);
@@ -233,12 +245,110 @@ class DuplicateCommand {
 }
 
 // ─────────────────────────────────────────────
+// Command: CSG Boolean operation (union / difference / intersect)
+// ─────────────────────────────────────────────
+class BooleanCommand {
+    /**
+     * @param {object} snapshot
+     *   {
+     *     sketchA, sketchB,          — original SketchRectangle operands
+     *     oldMeshA, oldMeshB,        — THREE.Mesh references before the operation
+     *     resultMesh,                — THREE.Mesh produced by the operation
+     *     sceneManager, stateManager
+     *   }
+     */
+    constructor(snapshot) {
+        this.snapshot = snapshot;
+    }
+
+    undo() {
+        const { sketchA, sketchB, oldMeshA, oldMeshB, resultMesh,
+                sceneManager, stateManager } = this.snapshot;
+
+        // Remove result from scene
+        sceneManager.removeFromScene(resultMesh);
+
+        // Restore sketchA's original mesh
+        sketchA.extrudedMesh = oldMeshA;
+        sceneManager.addToScene(oldMeshA);
+
+        // Restore sketchB to state and scene
+        sketchB.extrudedMesh = oldMeshB;
+        sceneManager.addToScene(oldMeshB);
+        if (!stateManager.sketches.includes(sketchB)) {
+            stateManager.sketches.push(sketchB);
+            stateManager.updateShapeCount();
+            if (stateManager.objectListManager) {
+                stateManager.objectListManager.restoreSketchObject(sketchB);
+            }
+        }
+
+        stateManager.updateSketchInObjectList(sketchA);
+    }
+
+    redo() {
+        const { sketchA, sketchB, oldMeshA, oldMeshB, resultMesh,
+                sceneManager, stateManager } = this.snapshot;
+
+        // Remove original meshes
+        sceneManager.removeFromScene(oldMeshA);
+        sceneManager.removeFromScene(oldMeshB);
+
+        // Re-apply result
+        sketchA.extrudedMesh = resultMesh;
+        sceneManager.addToScene(resultMesh);
+
+        // Remove sketchB from state again
+        stateManager.removeSketch(sketchB);
+
+        stateManager.updateSketchInObjectList(sketchA);
+    }
+}
+
+// ─────────────────────────────────────────────
+// Command: fillet or chamfer geometry replacement
+// ─────────────────────────────────────────────
+class FilletCommand {
+    /**
+     * @param {object} snapshot
+     *   { sketch, oldGeometry, newGeometry, filletOp }
+     *   filletOp: { type: 'chamfer'|'fillet', amount: number } | null (for reset)
+     */
+    constructor(snapshot) {
+        this.snapshot = snapshot;
+    }
+
+    undo() {
+        const { sketch, oldGeometry } = this.snapshot;
+        if (!sketch || !sketch.extrudedMesh) return;
+        sketch.extrudedMesh.geometry.dispose();
+        sketch.extrudedMesh.geometry = oldGeometry.clone();
+        // Restore original-geometry marker so FilletManager.hasOperation() works correctly
+        delete sketch.extrudedMesh.userData._originalGeometry;
+        delete sketch.extrudedMesh.userData._filletOp;
+    }
+
+    redo() {
+        const { sketch, newGeometry, filletOp } = this.snapshot;
+        if (!sketch || !sketch.extrudedMesh) return;
+        // Save original for another potential undo
+        if (!sketch.extrudedMesh.userData._originalGeometry) {
+            sketch.extrudedMesh.userData._originalGeometry = this.snapshot.oldGeometry.clone();
+        }
+        sketch.extrudedMesh.geometry.dispose();
+        sketch.extrudedMesh.geometry = newGeometry.clone();
+        if (filletOp) sketch.extrudedMesh.userData._filletOp = filletOp;
+    }
+}
+
+// ─────────────────────────────────────────────
 // CommandManager
 // ─────────────────────────────────────────────
 export class CommandManager {
     constructor() {
         this.undoStack = [];
         this.redoStack = [];
+        this._domHandler = new CommandControlsDOMHandler();
     }
 
     // Push a command that has already been executed
@@ -277,16 +387,7 @@ export class CommandManager {
     canRedo() { return this.redoStack.length > 0; }
 
     _updateUI() {
-        const undoBtn = document.getElementById('top-undo');
-        if (undoBtn) {
-            undoBtn.disabled = !this.canUndo();
-            undoBtn.title = `Undo (Ctrl+Z)${this.canUndo() ? '' : ' — nothing to undo'}`;
-        }
-        const redoBtn = document.getElementById('top-redo');
-        if (redoBtn) {
-            redoBtn.disabled = !this.canRedo();
-            redoBtn.title = `Redo (Ctrl+Y)${this.canRedo() ? '' : ' — nothing to redo'}`;
-        }
+        this._domHandler.updateUndoRedo(this.canUndo(), this.canRedo());
     }
 
     // ── Factories (convenience) ──────────────────────────
@@ -309,5 +410,13 @@ export class CommandManager {
 
     static createDuplicate(original, duplicate, sceneManager, stateManager) {
         return new DuplicateCommand(original, duplicate, sceneManager, stateManager);
+    }
+
+    static createBoolean(snapshot) {
+        return new BooleanCommand(snapshot);
+    }
+
+    static createFillet(snapshot) {
+        return new FilletCommand(snapshot);
     }
 }

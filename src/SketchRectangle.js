@@ -332,10 +332,16 @@ export class SketchRectangle {
             if (line.parent) {
                 line.parent.remove(line);
             }
+            if (line.geometry) line.geometry.dispose();
+            if (line.material) line.material.dispose();
         });
         this.dimensionTexts.forEach(text => {
             if (text.parent) {
                 text.parent.remove(text);
+            }
+            if (text.material) {
+                if (text.material.map) text.material.map.dispose();
+                text.material.dispose();
             }
         });
         this.dimensionLines = [];
@@ -399,11 +405,18 @@ export class SketchRectangle {
     
     remove() {
         this.clearDimensions();
-        if (this.mesh && this.mesh.parent) {
-            this.mesh.parent.remove(this.mesh);
+        if (this.mesh) {
+            if (this.mesh.parent) this.mesh.parent.remove(this.mesh);
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            if (this.mesh.material) this.mesh.material.dispose();
         }
-        if (this.extrudedMesh && this.extrudedMesh.parent) {
-            this.extrudedMesh.parent.remove(this.extrudedMesh);
+        if (this.extrudedMesh) {
+            if (this.extrudedMesh.parent) this.extrudedMesh.parent.remove(this.extrudedMesh);
+            if (this.extrudedMesh.geometry) this.extrudedMesh.geometry.dispose();
+            if (this.extrudedMesh.material) {
+                if (this.extrudedMesh.material.map) this.extrudedMesh.material.map.dispose();
+                this.extrudedMesh.material.dispose();
+            }
         }
     }
 }

@@ -27,11 +27,21 @@ export class DisplayModeManager {
         this._mode = 'shaded';
         this._overlayMeshes = []; // wireframe overlays for shaded-edges mode
         this._btn = null;
-        this._ensureDOM();
-        window.addEventListener('keydown', (e) => {
+        this._boundKeydown = (e) => {
             if ((e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
             if (e.key === 'w' || e.key === 'W') this.cycleMode();
-        });
+        };
+        window.addEventListener('keydown', this._boundKeydown);
+        this._ensureDOM();
+    }
+
+    /** Remove event listeners and DOM elements created by this manager. */
+    dispose() {
+        window.removeEventListener('keydown', this._boundKeydown);
+        this._clearOverlays();
+        if (this._btn && this._btn.parentNode) {
+            this._btn.parentNode.removeChild(this._btn);
+        }
     }
 
     get mode() { return this._mode; }
