@@ -105,12 +105,45 @@ export class InteractionManager {
 
         window.addEventListener('keydown', this.onKeyDown.bind(this));
 
+        // Mobile: enable horizontal swipe on the tool strip
+        this._setupToolstripScroll();
+
         // Hook into TransformControls to refresh property panel on move
         if (this.transformManager.transformControls) {
             this.transformManager.transformControls.addEventListener('objectChange', () => {
                 this.propertyPanelManager.refresh();
             });
         }
+    }
+
+    _setupToolstripScroll() {
+        const strip = document.querySelector('.top-bar__right');
+        if (!strip) return;
+
+        let startX = 0;
+        let startScrollLeft = 0;
+        let isScrolling = false;
+
+        strip.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startScrollLeft = strip.scrollLeft;
+            isScrolling = false;
+        }, { passive: true });
+
+        strip.addEventListener('touchmove', (e) => {
+            const dx = startX - e.touches[0].clientX;
+            if (!isScrolling && Math.abs(dx) > 5) {
+                isScrolling = true;
+            }
+            if (isScrolling) {
+                strip.scrollLeft = startScrollLeft + dx;
+                e.stopPropagation();
+            }
+        }, { passive: true });
+
+        strip.addEventListener('touchend', () => {
+            isScrolling = false;
+        }, { passive: true });
     }
 
     setupControls() {

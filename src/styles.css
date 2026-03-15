@@ -241,22 +241,111 @@ body {
    Mobile layout (≤ 640px)
    ============================ */
 @media (max-width: 640px) {
+    /* ── Top bar: 2-row grid ── */
     #top-bar {
-        height: 52px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: 48px 48px;
+        height: 96px;
         padding: 0 4px;
+        position: relative;
+        overflow: visible;
     }
 
+    /* Row 1 col 1: left section (undo/redo/save/load) */
+    .top-bar__left {
+        grid-column: 1;
+        grid-row: 1;
+        flex: none;
+        align-items: center;
+        padding: 0 2px;
+    }
+
+    /* Row 1 col 2: center section (mode buttons) */
+    .top-bar__center {
+        grid-column: 2;
+        grid-row: 1;
+        justify-content: center;
+    }
+
+    /* Row 2: scrollable tool strip spanning full width */
+    .top-bar__right {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        flex: none;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: visible;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 4px 36px 4px 4px; /* right padding for fade */
+        gap: 2px;
+    }
+
+    .top-bar__right::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Show separators inside the scrollable strip */
+    .top-bar__right .top-bar__sep {
+        display: flex;
+    }
+
+    /* Hide logo and other separators */
     .top-bar__logo {
         display: none;
     }
 
-    .top-bar__sep {
+    .top-bar__left .top-bar__sep,
+    .top-bar__center .top-bar__sep {
+        display: none;
+    }
+
+    /* Mode buttons: icon only on mobile */
+    .mode-label {
         display: none;
     }
 
     .tb-mode-btn {
-        padding: 0 8px;
+        padding: 0;
+        width: 40px;
         font-size: 11px;
+    }
+
+    /* Larger touch targets */
+    .tb-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .tb-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Dropdown as bottom sheet (escapes overflow container) */
+    .tb-dropdown__menu {
+        position: fixed;
+        bottom: 44px;
+        left: 8px;
+        right: 8px;
+        top: auto;
+        border-radius: 12px;
+        z-index: 1000;
+    }
+
+    /* Scroll fade gradient on the right edge of the tool strip */
+    #top-bar::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 36px;
+        height: 48px;
+        background: linear-gradient(to right, transparent, rgba(22, 22, 26, 0.97));
+        pointer-events: none;
+        z-index: 3;
     }
 
     /* Status bar taller */
