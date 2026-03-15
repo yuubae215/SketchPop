@@ -157,7 +157,7 @@ export class ObjectListManager {
     }
 
     addSketchObject(sketch) {
-        const objectId = generateObjectId();
+        const objectId = sketch.objectId || generateObjectId();
         sketch.objectId = objectId;
         
         // Generate object item data using pure function

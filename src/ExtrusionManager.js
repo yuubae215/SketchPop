@@ -283,7 +283,7 @@ export class ExtrusionManager {
             this.restoreOriginalMeshOpacity(faceExtrusion.object);
         }
         
-        if (faceExtrusion.newMesh && Math.abs(faceExtrusion.extrudeDistance) > 0.1) {
+        if (faceExtrusion && faceExtrusion.newMesh && Math.abs(faceExtrusion.extrudeDistance) > 0.1) {
             const success = this.integrateExtrusionWithOriginal(faceExtrusion);
             if (success) {
                 console.log('Face extrusion confirmed and integrated with original shape');
@@ -293,10 +293,8 @@ export class ExtrusionManager {
                     this.sceneManager.removeFromScene(faceExtrusion.newMesh);
                 }
             }
-        } else {
-            if (faceExtrusion.newMesh) {
-                this.sceneManager.removeFromScene(faceExtrusion.newMesh);
-            }
+        } else if (faceExtrusion && faceExtrusion.newMesh) {
+            this.sceneManager.removeFromScene(faceExtrusion.newMesh);
         }
         
         this.stateManager.currentFaceExtrusion = null;
