@@ -123,10 +123,9 @@ export class ProjectManager {
                 }
             }
 
-            // Preserve original objectId before addSketch generates a new one
-            const savedId = sd.objectId;
+            // Set saved objectId before addSketch so the DOM item is registered with the correct ID
+            if (sd.objectId) sketch.objectId = sd.objectId;
             this.stateManager.addSketch(sketch);
-            if (savedId) sketch.objectId = savedId;
         }
     }
 }
