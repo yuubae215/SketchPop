@@ -12,7 +12,7 @@ class SceneHandler {
 
     initializeScene() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0xf0f0f0);
+        this.scene.background = null;
         return this.scene;
     }
 
