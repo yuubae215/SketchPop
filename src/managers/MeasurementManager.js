@@ -134,21 +134,44 @@ export class MeasurementManager {
     }
 
     _addDistanceAnnotation(pA, pB, dist) {
-        // Dimension line
-        const lineGeo = new THREE.BufferGeometry().setFromPoints([pA, pB]);
-        const lineMat = new THREE.LineBasicMaterial({ color: 0x00bfff, depthTest: false });
-        lineMat.depthWrite = false;
-        const line = new THREE.Line(lineGeo, lineMat);
-        line.renderOrder = 998;
-        this.sceneManager.scene.add(line);
-        this._annotations.push(line);
+        // Compute extension direction (perpendicular to AB, biased upward) for U-shape
+        const ABdir = new THREE.Vector3().subVectors(pB, pA).normalize();
+        const worldUp = new THREE.Vector3(0, 1, 0);
+        let perpDir;
+        if (Math.abs(ABdir.dot(worldUp)) > 0.9) {
+            // Nearly vertical measurement — extend sideways
+            perpDir = new THREE.Vector3(1, 0, 0);
+        } else {
+            // Project worldUp onto the plane perpendicular to ABdir
+            perpDir = worldUp.clone()
+                .sub(ABdir.clone().multiplyScalar(ABdir.dot(worldUp)))
+                .normalize();
+        }
+
+        const extensionLen = 0.5;
+        const pA_outer = pA.clone().addScaledVector(perpDir, extensionLen);
+        const pB_outer = pB.clone().addScaledVector(perpDir, extensionLen);
+
+        const addLine = (p1, p2) => {
+            const mat = new THREE.LineBasicMaterial({ color: 0x00bfff, depthTest: false, depthWrite: false });
+            const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), mat);
+            line.renderOrder = 998;
+            this.sceneManager.scene.add(line);
+            this._annotations.push(line);
+        };
+
+        // Two extension lines (legs of コの字)
+        addLine(pA, pA_outer);
+        addLine(pB, pB_outer);
+        // Main dimension line (top of コの字)
+        addLine(pA_outer, pB_outer);
 
         // End-point marker
         this._addPointMarker(pB);
 
-        // Text sprite at midpoint
-        const mid = pA.clone().lerp(pB, 0.5);
-        mid.y += 0.15;
+        // Text at midpoint of main dimension line, slightly further outward
+        const mid = pA_outer.clone().lerp(pB_outer, 0.5);
+        mid.addScaledVector(perpDir, 0.1);
         const label = `${dist.toFixed(2)} u`;
         this._addTextSprite(label, mid, 0x00bfff);
     }
@@ -283,8 +306,9 @@ export class MeasurementManager {
         const mat = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false });
         const sprite = new THREE.Sprite(mat);
         sprite.position.copy(position);
-        sprite.scale.set(1.4, 0.35, 1);
-        sprite.renderOrder = 1001;
+        sprite.position.y += 0.15;
+        sprite.scale.set(1.2, 0.3, 1);
+        sprite.renderOrder = 1000;
         this.sceneManager.scene.add(sprite);
         this._annotations.push(sprite);
     }
