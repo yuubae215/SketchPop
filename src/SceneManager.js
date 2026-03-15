@@ -61,8 +61,8 @@ export class SceneManager {
         `;
 
         const uniforms = {
-            colorTop: { value: new THREE.Color(0x252d42) },    // Dark blue-slate
-            colorBottom: { value: new THREE.Color(0x14181f) }  // Very dark navy
+            colorTop: { value: new THREE.Color(0x131a28) },    // Darker blue-slate
+            colorBottom: { value: new THREE.Color(0x080b10) }  // Near-black
         };
 
         const gradientGeometry = new THREE.PlaneGeometry(2, 2);
