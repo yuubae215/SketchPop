@@ -1,122 +1,69 @@
-# SketchPop - Intuitive 3D Modeling
+# SketchPop — Sketch. Extrude. Pop into 3D.
 
-A web-based 3D modeling application that creates 3D models from 2D sketches using an intuitive sketch-and-extrude workflow. Built with Three.js and Vite.
+> **Bring your ideas to life in the browser — no software to install, no learning curve.**
 
-**Live Demo:** https://yuubae215.github.io/SketchPop/
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Try%20it%20now-brightgreen?style=for-the-badge)](https://yuubae215.github.io/SketchPop/)
 
-## Overview
+SketchPop is a **web-based 3D modeling app** powered by Three.js. Draw rectangles, pull them into solids, combine shapes with boolean ops, and export your models — all without leaving your browser tab.
 
-SketchPop lets you start with simple 2D rectangle sketches on a ground plane and extrude them into 3D shapes — bringing the core sketch-and-extrude experience of CAD software to the browser.
+---
+
+## What can you build?
+
+Draw → Extrude → Done. That's the whole loop.
+
+- Architectural massing models
+- Furniture rough layouts
+- Game asset blockouts
+- Quick concept explorations
+- Anything boxy and awesome
+
+---
 
 ## Features
 
-### Sketch & Extrude
-- Draw 2D rectangles on the ground plane with click-and-drag
-- Real-time preview while drawing
-- Extrude 2D sketches into 3D shapes by moving the mouse
-- Extrude additional faces from existing solid faces
-- Orange preview during pending confirmation
+### ✏️ Sketch & Extrude
+- Click and drag to draw 2D rectangles on the ground plane
+- Real-time preview as you draw and extrude
+- Extrude from **any face** of an existing solid — not just the ground
+- Set a **construction plane** on any face (`Space`) to sketch directly on it
 
-### Transform
-- Move, rotate, and scale confirmed objects with visual handles
-- Box selection (drag to select multiple objects)
-- Edge selection mode for selecting individual edges
+### ⚡ Transform
+- Move, rotate, and scale with interactive visual handles
+- **Box select** multiple objects with a drag
+- **Edge selection** mode for precision work
 
-### Display Modes (`W` key)
-- Shaded — default opaque view
-- Shaded + Edges — shaded with wireframe overlay
-- Wireframe — lines only
-- X-Ray — semi-transparent
+### 🎨 Display Modes (`W`)
+| Mode | Look |
+|------|------|
+| Shaded | Clean opaque surfaces |
+| Shaded + Edges | Wireframe overlay on shaded |
+| Wireframe | Lines only |
+| X-Ray | See through everything |
 
-### Grid Snap
-- Toggle grid snapping (`G` key) for precise placement
-- Configurable grid size (default 1.0 unit)
+### 🔲 Grid Snap (`G`)
+Snap sketch points and extrusion heights to a configurable grid for pixel-perfect precision.
 
-### Boolean Operations
-- Union, Difference, Intersect on two selected extruded objects
-- Powered by three-csg-ts
+### ➕ Boolean Operations
+Combine two shapes into one with **Union**, **Difference**, or **Intersect** — powered by CSG.
 
-### Fillet & Chamfer
-- Apply chamfer (45° cut) or fillet (rounded arc) to top edges
-- Reset to original geometry
+### 🔧 Fillet & Chamfer
+Round off or bevel top edges in seconds. Reset to original geometry anytime.
 
-### Construction Plane (`Space` key)
-- Hover any face of an extruded object and press `Space` to set a construction plane on that face
-- Subsequent sketches are drawn directly on that face (semi-transparent grid overlay shown)
-- Press `Esc` or click the toolbar button again to reset to the ground plane
+### 📐 Measurements (`M`)
+Click two points for a **distance measurement**, or click a face to see its **area** — annotated right in the viewport.
 
-### Edge Loop Selection (`L` key)
-- In edge-select mode, hover an edge and press `L` to select the entire edge loop
-- Useful for quickly applying fillet or chamfer to a full ring of edges
+### 🕹️ Command System
+- Full undo/redo (`Ctrl+Z` / `Ctrl+Y`)
+- **Command palette** (`Ctrl+K`) — fuzzy-search every action
+- **Timeline panel** for a visual command history
 
-### Measurement Tools (`M` key)
-- Distance mode: click two points to measure
-- Face area mode: click a face to display its area
+### 💾 Project & Export
+- Auto-save to localStorage — never lose your work
+- Save and reload projects as `.json`
+- Export finished models as **STL, OBJ, GLTF, GLB, or PNG**
 
-### Command System
-- Full undo/redo (`Ctrl+Z` / `Ctrl+Y` or `Ctrl+Shift+Z`)
-- Command palette (`Ctrl+K`) for fuzzy search of all commands
-- Timeline history panel at the bottom of the viewport
-
-### Project & Export
-- Auto-save to localStorage
-- Save/load project as `.json`
-- Export: STL, OBJ, GLTF, GLB, PNG
-
-### UI
-- Properties panel (position, dimensions) for selected objects
-- Object list sidebar with visibility toggle
-- Context menu (right-click) for rename, duplicate, hide, delete
-- Toast notifications for user feedback
-- ViewCube and axis triad for camera orientation
-
-## Getting Started
-
-```bash
-# Install dependencies
-npm install
-# or
-pnpm install
-
-# Start development server
-npm run dev
-
-# Open in browser
-open http://localhost:5173/SketchPop/
-```
-
-### Build
-
-```bash
-npm run build    # Output to dist/
-npm run preview  # Preview the built output
-```
-
-## Usage
-
-### 1. Sketch Mode (`S`)
-1. Click once on the ground plane to set the start point
-2. Move the mouse to preview the rectangle
-3. Click again to finalize the rectangle
-
-### 2. Extrude Mode (`E`)
-1. Click on a sketch shape to start extruding
-2. Move the mouse to adjust height
-3. Click again to confirm with orange preview
-
-### 3. Confirm / Cancel
-- **Confirm**: Right-click or ✓ button
-- **Cancel**: ESC key or ✗ button
-
-### 4. Face Extrusion
-- Hover over a face of a confirmed solid to highlight it
-- Click the face to start extruding from it
-- Right-click to confirm
-
-### 5. Select Mode (`V`)
-- Click objects to select them
-- Drag to box-select multiple objects
-- Use transform handles to move / rotate / scale
+---
 
 ## Keyboard Shortcuts
 
@@ -128,92 +75,57 @@ npm run preview  # Preview the built output
 | `W` | Cycle display modes |
 | `G` | Toggle grid snap |
 | `M` | Cycle measurement modes |
-| `P` | Toggle perspective/orthographic camera |
+| `P` | Toggle perspective / orthographic |
+| `Space` | Set construction plane from hovered face |
+| `L` | Select edge loop (edge-select mode) |
 | `Ctrl+K` | Open command palette |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` / `Ctrl+Shift+Z` | Redo |
 | `Delete` | Delete selected object |
-| `ESC` | Cancel / reset construction plane |
-| `Space` | Set construction plane from hovered face |
-| `L` | Select edge loop (edge-select mode) |
+| `Esc` | Cancel / reset construction plane |
+
+---
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install   # or: pnpm install
+
+# Start development server
+npm run dev
+
+# Open in browser
+open http://localhost:5173/SketchPop/
+```
+
+### Build for production
+
+```bash
+npm run build    # Output to dist/
+npm run preview  # Preview the built output
+```
+
+---
 
 ## Tech Stack
 
-- **Three.js** v0.178+ — 3D rendering
-- **Vite** v6+ — build tool and dev server
-- **ES6 modules** — modular architecture
-- **WebGL** — hardware-accelerated rendering
-- **three-csg-ts** — CSG boolean operations
+| | |
+|---|---|
+| **Three.js** v0.178+ | 3D rendering & scene graph |
+| **Vite** v6+ | Lightning-fast build tool |
+| **three-csg-ts** | CSG boolean operations |
+| **WebGL** | Hardware-accelerated rendering |
+| **ES6 modules** | Clean, modular architecture |
 
-## File Structure
-
-```
-SketchPop/
-├── src/
-│   ├── index.html                  # Main HTML (UI layout)
-│   ├── index.js                    # Application entry point
-│   ├── styles.css                  # Stylesheet
-│   ├── SceneManager.js             # Three.js scene, camera, renderer, lighting
-│   ├── StateManager.js             # Application state and mode switching
-│   ├── InteractionManager.js       # Mouse/keyboard events, manager orchestration
-│   ├── ExtrusionManager.js         # Extrusion logic and face detection
-│   ├── SelectionManager.js         # Object selection management
-│   ├── TransformManager.js         # Move / rotate / scale with handles
-│   ├── ObjectListManager.js        # Sidebar object list
-│   ├── StatusBarManager.js         # Status bar display
-│   ├── CommandManager.js           # Undo/redo command pattern
-│   ├── PropertyPanelManager.js     # Right-side property panel
-│   ├── HistoryPanelManager.js      # Timeline history panel
-│   ├── CommandPaletteManager.js    # Ctrl+K fuzzy command launcher
-│   ├── DisplayModeManager.js       # Shaded / wireframe / xray display modes
-│   ├── GridSnapManager.js          # Grid snapping for sketch points
-│   ├── ProjectManager.js           # Save / load project (JSON + localStorage)
-│   ├── ExportManager.js            # STL / OBJ / GLTF / GLB / PNG export
-│   ├── ContextMenuManager.js       # Right-click context menu
-│   ├── BooleanManager.js           # CSG boolean operations
-│   ├── ConstructionPlaneManager.js # Construction plane from face (Space key)
-│   ├── BoxSelectManager.js         # Drag-to-select multiple objects
-│   ├── EdgeSelectionManager.js     # Edge hover and selection
-│   ├── FilletManager.js            # Chamfer and fillet operations
-│   ├── MeasurementManager.js       # Distance and face-area measurement
-│   ├── ToastManager.js             # Toast notifications
-│   ├── SketchRectangle.js          # Rectangle sketch and extrusion
-│   ├── CustomExtruder.js           # Manual geometry (per-face vertices/normals/colors)
-│   ├── Box.js                      # Confirmed solid mesh management
-│   ├── Rectangle.js                # Base rectangle class
-│   ├── ViewCube.js                 # 3D navigation cube
-│   ├── AxisTriad.js                # X/Y/Z axis indicator
-│   ├── handlers/
-│   │   ├── domHandlers.js          # DOM side-effect handlers
-│   │   ├── selectionHandler.js     # Selection side-effect handlers
-│   │   ├── stateHandler.js         # State-change side-effect handlers
-│   │   ├── threeHandlers.js        # Three.js side-effect handlers
-│   │   └── transformHandler.js     # Transform operation handlers
-│   └── utils/
-│       ├── domUtils.js             # DOM pure utilities
-│       ├── geometry.js             # Geometry math pure functions
-│       ├── selectionUtils.js       # Selection pure utilities
-│       ├── stateUtils.js           # State pure utilities
-│       └── threeUtils.js           # Three.js pure utilities
-├── docs/
-│   ├── ARCHITECTURE.md             # Architecture documentation
-│   ├── API_REFERENCE.md            # API reference
-│   ├── REFACTORING_PROGRESS.md     # Refactoring history
-│   ├── CAD_UX_IMPROVEMENTS.md      # UX improvement proposals
-│   └── UX_BACKLOG.md               # UX backlog
-├── vite.config.js                  # Vite config (base: /SketchPop/, root: src)
-├── package.json
-├── pnpm-lock.yaml
-├── README.md
-└── CLAUDE.md                       # Guidance for Claude Code
-```
+---
 
 ## Browser Requirements
 
-- Modern browser (Chrome, Firefox, Safari, Edge)
-- WebGL support
-- ES6+ with module support
+Modern browser with WebGL support — Chrome, Firefox, Safari, or Edge.
+
+---
 
 ## License
 
-This project is created for educational and learning purposes.
+Created for educational and learning purposes.
