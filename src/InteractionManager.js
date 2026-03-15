@@ -20,6 +20,7 @@ import { EdgeSelectionManager } from './EdgeSelectionManager.js';
 import { FilletManager } from './FilletManager.js';
 import { BooleanManager } from './BooleanManager.js';
 import { ConstructionPlaneManager } from './ConstructionPlaneManager.js';
+import { ScriptEditorManager } from './ScriptEditorManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -77,6 +78,10 @@ export class InteractionManager {
 
         // Advanced CAD sprint
         this.constructionPlaneManager = new ConstructionPlaneManager(sceneManager, stateManager);
+
+        // Procedural / parametric scripting
+        this.scriptEditorManager = new ScriptEditorManager(sceneManager, stateManager, this.booleanManager);
+        this.scriptEditorManager.init();
 
         // Track second selected object for boolean ops
         this._secondSelectedObject = null;
@@ -259,6 +264,10 @@ export class InteractionManager {
             });
             document.addEventListener('click', () => boolMenu.classList.remove('open'));
         }
+
+        // Procedural script editor button
+        const scriptBtn = document.getElementById('top-script-editor');
+        if (scriptBtn) scriptBtn.addEventListener('click', () => this.scriptEditorManager.toggle());
 
         // Initialize icons
         this.updateSidebarIcons();
@@ -817,6 +826,13 @@ export class InteractionManager {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
             event.preventDefault();
             this._handleSave();
+            return;
+        }
+
+        // Procedural script editor: Ctrl+Shift+P
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'p') {
+            event.preventDefault();
+            this.scriptEditorManager.toggle();
             return;
         }
 
@@ -1567,6 +1583,10 @@ export class InteractionManager {
             { id: 'cplane-set',   label: 'Set construction plane (hover face → Space)', shortcut: 'Space', action: () => { if(sm.hoveredFace) { im.constructionPlaneManager.setFromFace(sm.hoveredFace); im.statusBarManager.setHint('Construction plane active — Esc to reset'); ToastManager.show('Construction plane set', 'info'); const b = document.getElementById('top-construction-plane'); if(b) b.classList.add('active'); } else ToastManager.show('Hover a face first', 'warning'); } },
             { id: 'cplane-reset', label: 'Reset construction plane',                    shortcut: '',      action: () => { im.constructionPlaneManager.reset(); im.statusBarManager.updateOperationHint(); ToastManager.show('Construction plane reset', 'info'); const b = document.getElementById('top-construction-plane'); if(b) b.classList.remove('active'); } },
             { id: 'edge-loop',    label: 'Select edge loop (edge-select mode → L)',     shortcut: 'L',     action: () => { const h = im.edgeSelectionManager._hoveredEdge; if(im.edgeSelectionManager.enabled && h) { im.edgeSelectionManager.selectLoop(h.mesh, h.segIndex); ToastManager.show('Edge loop selected', 'info'); } else ToastManager.show('Enable edge select and hover an edge', 'warning'); } },
+
+            // ── Procedural scripting ──
+            { id: 'script-toggle', label: 'Procedural Script Editor', shortcut: 'Ctrl+Shift+P', action: () => im.scriptEditorManager.toggle() },
+            { id: 'script-clear',  label: 'Clear procedural objects',  shortcut: '',             action: () => { im.scriptEditorManager._clearScene(); ToastManager.show('Procedural objects cleared', 'info'); } },
         ]);
     }
 }
