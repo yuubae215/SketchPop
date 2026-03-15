@@ -74,6 +74,122 @@ export class EdgeSelectionManager {
         }
     }
 
+    /**
+     * Select the full edge loop containing the given segment.
+     * Walks connected edges that make ~90° turns (box-style loop).
+     * Falls back to selecting all parallel edges if no loop is found.
+     *
+     * @param {THREE.Mesh} mesh
+     * @param {number}     segIndex  — starting segment index
+     */
+    selectLoop(mesh, segIndex) {
+        const data = this._meshData.get(mesh);
+        if (!data) return;
+
+        const pos = data.edgePositions; // flat Float32Array: [x0,y0,z0, x1,y1,z1, ...]
+        const numEdges = pos.length / 6;
+        const EPS = 0.001;
+
+        const getV = (i, endpoint) => {
+            const base = i * 6 + (endpoint === 0 ? 0 : 3);
+            return new THREE.Vector3(pos[base], pos[base + 1], pos[base + 2]);
+        };
+
+        const edgeDir = (i) =>
+            getV(i, 1).sub(getV(i, 0)).normalize();
+
+        // Walk edge loop starting from segIndex
+        const loopIndices = this._walkLoop(segIndex, numEdges, getV, edgeDir, EPS);
+
+        // If loop is trivially short (< 3), fall back to parallel-edge selection
+        const finalIndices = loopIndices.length >= 3
+            ? loopIndices
+            : this._selectParallel(segIndex, numEdges, edgeDir);
+
+        // Apply selection
+        finalIndices.forEach(idx => {
+            const alreadySelected = this._selectedEdges.some(
+                e => e.mesh === mesh && e.segIndex === idx
+            );
+            if (!alreadySelected) {
+                this._selectedEdges.push({
+                    mesh,
+                    segIndex: idx,
+                    vertices: this._getEdgeVertices(mesh, idx),
+                });
+            }
+            this._setEdgeColor(mesh, idx, 0xff9500);
+        });
+    }
+
+    _walkLoop(startIdx, numEdges, getV, edgeDir, EPS) {
+        const visited = new Set([startIdx]);
+        const loop = [startIdx];
+
+        const v0start = getV(startIdx, 0);
+        const v1start = getV(startIdx, 1);
+
+        let currentPos = v1start.clone();
+        let currentDir = edgeDir(startIdx);
+
+        for (let step = 0; step < numEdges; step++) {
+            let nextIdx = -1;
+            let nextEndPos = null;
+            let nextDir = null;
+
+            for (let i = 0; i < numEdges; i++) {
+                if (visited.has(i)) continue;
+                const a = getV(i, 0);
+                const b = getV(i, 1);
+
+                let fromV, toV;
+                if (a.distanceTo(currentPos) < EPS) {
+                    fromV = a; toV = b;
+                } else if (b.distanceTo(currentPos) < EPS) {
+                    fromV = b; toV = a;
+                } else {
+                    continue;
+                }
+
+                const newDir = toV.clone().sub(fromV).normalize();
+                // Accept only edges that are NOT co-linear with current direction
+                // (|dot| < 0.3 means angle > ~72°, which catches 90° box corners)
+                if (Math.abs(currentDir.dot(newDir)) < 0.3) {
+                    nextIdx = i;
+                    nextEndPos = toV.clone();
+                    nextDir = newDir.clone();
+                    break;
+                }
+            }
+
+            if (nextIdx === -1) break;
+
+            visited.add(nextIdx);
+            loop.push(nextIdx);
+            currentPos = nextEndPos;
+            currentDir = nextDir;
+
+            // Closed when we returned to the start edge's start vertex
+            if (currentPos.distanceTo(v0start) < EPS) break;
+        }
+
+        return loop;
+    }
+
+    /** Fallback: select all edges parallel to segIndex. */
+    _selectParallel(segIndex, numEdges, edgeDir) {
+        const refDir = edgeDir(segIndex);
+        const result = [segIndex];
+        for (let i = 0; i < numEdges; i++) {
+            if (i === segIndex) continue;
+            const d = edgeDir(i);
+            if (Math.abs(refDir.dot(d)) > 0.99) {
+                result.push(i);
+            }
+        }
+        return result;
+    }
+
     onMouseMove(event) {
         if (!this.enabled) return;
 

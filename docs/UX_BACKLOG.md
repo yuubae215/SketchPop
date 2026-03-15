@@ -258,7 +258,8 @@ Reference: Blender outliner, Fusion 360 browser.
 | ✅ Done | Power-user | Command palette, History timeline, Display modes |
 | ✅ Done | Polish | Context menu, Object list improvements, Measurement tools |
 | ✅ Done | **Plasticity-inspired** | **Axis constraints, Box select, Edge selection, Fillet/Chamfer, Boolean ops** |
-| **Next** | **Advanced CAD** | **Construction plane, Sweep/Loft, Loop selection, Multi-viewport** |
+| ✅ Done | **Advanced CAD** | **Construction plane (Space), Loop selection (L), toolbar button** |
+| **Next** | **Parametric / Advanced** | **Multi-viewport, Sweep, Loft, Non-planar construction plane** |
 
 ---
 
@@ -419,15 +420,24 @@ Reference: Blender outliner, Fusion 360 browser.
 | 4 | Fillet / Chamfer edges | 🟠 Medium | `FilletManager.js` | 上面4エッジを丸め(fillet)または面取り(chamfer)。Boolean メニューから実行。再実行でリセット |
 | 5 | Boolean operations (Union/Difference/Intersect) | 🟠 Medium | `BooleanManager.js` | `three-csg-ts` を使用。Box選択で2オブジェクト選択後 Boolean メニューから操作 |
 
-### 次スプリント候補 (Advanced CAD)
+### ✅ [DONE — Sprint 2026-03-15] Advanced CAD
 
-| # | 項目 | 優先度 | 見積 | 担当ファイル | Plasticity 対応機能 |
-|---|------|--------|------|-------------|-------------------|
-| 1 | Construction plane from face | 🟠 Medium | L | `ConstructionPlaneManager.js` | Construction planes |
-| 2 | Multi-viewport (4-split) | 🟢 Low | L | `ViewportManager.js` | Multi-view |
-| 3 | Sweep along path | 🟢 Low | L | `SweepManager.js` | Sweep |
-| 4 | Loft between profiles | 🟢 Low | L | `LoftManager.js` | Loft |
-| 5 | Loop selection | 🟢 Low | M | `EdgeSelectionManager.js` 拡張 | Loop select |
+| # | 項目 | 優先度 | 見積 | 担当ファイル |
+|---|------|--------|------|-------------|
+| 1 | Construction plane from face | 🟠 Medium | L | `ConstructionPlaneManager.js` |
+| 2 | Loop selection (edge loop) | 🟢 Low | M | `EdgeSelectionManager.js` 拡張 |
+
+**Construction plane** — `Space` キーでホバー中のフェースに作図平面を設定。半透明グリッドを表示。`Esc` でリセット。ツールバーボタン (top-construction-plane) も追加。
+**Loop selection** — エッジ選択モード中に `L` キーでホバー中のエッジのループをまとめて選択。箱形ジオメトリの上/下/側面ループに対応。
+
+### 次スプリント候補 (Parametric / Advanced)
+
+| # | 項目 | 優先度 | 見積 | 担当ファイル | 備考 |
+|---|------|--------|------|-------------|------|
+| 1 | Multi-viewport (4-split) | 🟢 Low | L | `ViewportManager.js` | Front/Top/Right/3D 同時表示 |
+| 2 | Sweep along path | 🟢 Low | L | `SweepManager.js` | パスに沿ってプロファイルを押し出し |
+| 3 | Loft between profiles | 🟢 Low | L | `LoftManager.js` | 2断面間をロフト |
+| 4 | Non-planar construction plane | 🟢 Low | M | `ConstructionPlaneManager.js` 拡張 | 現実装は水平面優先。任意傾斜面対応 |
 
 ---
 
