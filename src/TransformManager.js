@@ -32,10 +32,9 @@ export class TransformManager {
         this.transformControls.setMode(this.transformMode);
         this.transformControls.setSpace('world');
 
-        const gizmo = this.transformControls.getHelper();
-        this.sceneManager.addToScene(gizmo);
-
-        this.transformControls.visible = false;
+        this.gizmo = this.transformControls.getHelper();
+        this.sceneManager.addToScene(this.gizmo);
+        this.gizmo.visible = false;
 
         this.setupEventListeners();
     }
@@ -74,6 +73,10 @@ export class TransformManager {
                 }
             } else {
                 this.updateObjectInStateManager();
+                // Re-sync gizmo to the object's final position after drag
+                if (this.currentTransformObject) {
+                    this.transformControls.attach(this.currentTransformObject);
+                }
             }
         });
 
@@ -112,7 +115,7 @@ export class TransformManager {
 
         this.currentTransformObject = object;
         this.transformControls.attach(object);
-        this.transformControls.visible = true;
+        if (this.gizmo) this.gizmo.visible = true;
 
         this.storeOriginalObjectData();
         this._clearAxisConstraint();
@@ -131,7 +134,7 @@ export class TransformManager {
         if (this.transformControls.object) {
             this.transformControls.detach();
         }
-        this.transformControls.visible = false;
+        if (this.gizmo) this.gizmo.visible = false;
         this.currentTransformObject = null;
         this.originalObjectData = null;
         this._clearAxisConstraint();
@@ -332,7 +335,9 @@ export class TransformManager {
     }
 
     setVisible(visible) {
-        this.transformControls.visible = visible && this.currentTransformObject !== null;
+        if (this.gizmo) {
+            this.gizmo.visible = visible && this.currentTransformObject !== null;
+        }
     }
 
     handleObjectSelection(object) {
