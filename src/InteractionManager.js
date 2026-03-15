@@ -560,17 +560,19 @@ export class InteractionManager {
                 this.sceneManager.addToScene(mesh);
             }
         } else if (this.stateManager.isExtruding && this.stateManager.selectedSketch && this.stateManager.extrudeStartPos) {
-            event.preventDefault();
-            const distance = intersection.distanceTo(this.stateManager.extrudeStartPos);
-            const rawHeight = Math.max(0, distance * 0.5);
-            const height = this.gridSnapManager.snapValue(rawHeight);
-            const mesh = this.stateManager.selectedSketch.extrude(height);
-            if (mesh) {
-                this.sceneManager.addToScene(mesh);
-            }
+            if (intersection) {
+                event.preventDefault();
+                const distance = intersection.distanceTo(this.stateManager.extrudeStartPos);
+                const rawHeight = Math.max(0, distance * 0.5);
+                const height = this.gridSnapManager.snapValue(rawHeight);
+                const mesh = this.stateManager.selectedSketch.extrude(height);
+                if (mesh) {
+                    this.sceneManager.addToScene(mesh);
+                }
 
-            if (this.stateManager.dimensionsEnabled && height > 0.1) {
-                this.updateSketchExtrusionDimensions(this.stateManager.selectedSketch, height);
+                if (this.stateManager.dimensionsEnabled && height > 0.1) {
+                    this.updateSketchExtrusionDimensions(this.stateManager.selectedSketch, height);
+                }
             }
         } else if (this.stateManager.isFaceExtruding && this.stateManager.currentFaceExtrusion && this.stateManager.faceExtrudeStartPos && !this.stateManager.currentFaceExtrusion.isPending) {
             event.preventDefault();

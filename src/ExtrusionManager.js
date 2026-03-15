@@ -473,22 +473,31 @@ export class ExtrusionManager {
         }
         
         if (newGeometry) {
-            this.sceneManager.removeFromScene(originalSketch.extrudedMesh);
+            // Dispose old GPU resources before overwriting the reference
+            const oldMesh = originalSketch.extrudedMesh;
+            if (oldMesh.geometry) oldMesh.geometry.dispose();
+            if (oldMesh.material) {
+                const mats = Array.isArray(oldMesh.material) ? oldMesh.material : [oldMesh.material];
+                mats.forEach(m => m.dispose());
+            }
+            this.sceneManager.removeFromScene(oldMesh);
             this.sceneManager.removeFromScene(newMesh);
-            
-            const material = new THREE.MeshPhongMaterial({ 
+
+            const material = new THREE.MeshPhongMaterial({
                 color: 0x4a90e2,
                 transparent: true,
                 opacity: 0.8
             });
-            
+
             originalSketch.extrudedMesh = new THREE.Mesh(newGeometry, material);
             originalSketch.extrudedMesh.position.copy(newPosition);
+            // Set userData so raycasting and selection still work
+            originalSketch.extrudedMesh.userData.sketchRectangle = originalSketch;
+            originalSketch.extrudedMesh.userData.objectId = originalSketch.objectId;
             this.sceneManager.addToScene(originalSketch.extrudedMesh);
-            
-            const lineMesh = originalSketch.createMesh();
-            this.sceneManager.addToScene(lineMesh);
-            
+            // sketch.mesh (2D outline) is already in the scene; do NOT call createMesh()
+            // again as that would orphan the existing line mesh and add a duplicate.
+
             console.log('Face extrusion integrated with original shape. New position:', newPosition, 'New size:', newGeometry.parameters);
             return true;
         }
@@ -645,9 +654,15 @@ export class ExtrusionManager {
     clearExtrusionDimensions() {
         this.dimensionLines.forEach(line => {
             this.sceneManager.removeFromScene(line);
+            if (line.geometry) line.geometry.dispose();
+            if (line.material) line.material.dispose();
         });
         this.dimensionTexts.forEach(text => {
             this.sceneManager.removeFromScene(text);
+            if (text.material) {
+                if (text.material.map) text.material.map.dispose();
+                text.material.dispose();
+            }
         });
         this.dimensionLines = [];
         this.dimensionTexts = [];

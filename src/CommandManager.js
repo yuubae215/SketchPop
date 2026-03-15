@@ -8,6 +8,8 @@
  *   FaceExtrudeCommand - undo reverts the merged geometry to a snapshot
  */
 
+import { CommandControlsDOMHandler } from './handlers/domHandlers.js';
+
 const MAX_HISTORY = 50;
 
 // ─────────────────────────────────────────────
@@ -112,8 +114,16 @@ class DeleteSketchCommand {
     undo() {
         const sketch = this.sketch;
 
-        // Re-add the sketch to state (fires the object-list side-effect)
-        this.stateManager.addSketch(sketch);
+        // Re-add to internal sketches array directly — bypass addSketch() which
+        // would overwrite sketch.objectId via addSketchObject().
+        if (!this.stateManager.sketches.includes(sketch)) {
+            this.stateManager.sketches.push(sketch);
+            this.stateManager.updateShapeCount();
+            if (this.stateManager.objectListManager) {
+                // restoreSketchObject() preserves the existing objectId in the DOM
+                this.stateManager.objectListManager.restoreSketchObject(sketch);
+            }
+        }
 
         // Restore meshes to the scene
         if (sketch.mesh) this.sceneManager.addToScene(sketch.mesh);
@@ -239,6 +249,7 @@ export class CommandManager {
     constructor() {
         this.undoStack = [];
         this.redoStack = [];
+        this._domHandler = new CommandControlsDOMHandler();
     }
 
     // Push a command that has already been executed
@@ -277,16 +288,7 @@ export class CommandManager {
     canRedo() { return this.redoStack.length > 0; }
 
     _updateUI() {
-        const undoBtn = document.getElementById('top-undo');
-        if (undoBtn) {
-            undoBtn.disabled = !this.canUndo();
-            undoBtn.title = `Undo (Ctrl+Z)${this.canUndo() ? '' : ' — nothing to undo'}`;
-        }
-        const redoBtn = document.getElementById('top-redo');
-        if (redoBtn) {
-            redoBtn.disabled = !this.canRedo();
-            redoBtn.title = `Redo (Ctrl+Y)${this.canRedo() ? '' : ' — nothing to redo'}`;
-        }
+        this._domHandler.updateUndoRedo(this.canUndo(), this.canRedo());
     }
 
     // ── Factories (convenience) ──────────────────────────

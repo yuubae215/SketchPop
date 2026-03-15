@@ -42,7 +42,7 @@ export function shouldClearActiveOperations(oldMode, newMode) {
     }
     
     const operationClearMap = {
-        'sketch': ['extrude', 'face-extrude'],
+        'sketch': ['extrude', 'face-extrude', 'select'],
         'extrude': ['sketch', 'face-extrude', 'select'],
         'face-extrude': ['sketch', 'extrude', 'select'],
         'select': ['sketch', 'extrude', 'face-extrude']
