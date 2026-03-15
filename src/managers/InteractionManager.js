@@ -1147,17 +1147,20 @@ export class InteractionManager {
         canvas.width = 256;
         canvas.height = 64;
 
-        context.fillStyle = '#ff9500';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        context.strokeStyle = '#ffffff';
-        context.lineWidth = 3;
-        context.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
-
-        context.fillStyle = '#ffffff';
-        context.font = 'bold 24px Arial';
+        context.font = 'bold 26px Arial';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
+
+        // Dark stroke outline for contrast on any background
+        context.shadowColor = 'rgba(0,0,0,0.9)';
+        context.shadowBlur = 6;
+        context.strokeStyle = 'rgba(0,0,0,0.85)';
+        context.lineWidth = 5;
+        context.lineJoin = 'round';
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+        context.shadowBlur = 0;
+
+        context.fillStyle = '#ff9500';
         context.fillText(text, canvas.width / 2, canvas.height / 2);
 
         const texture = new THREE.CanvasTexture(canvas);
