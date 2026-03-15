@@ -1,6 +1,6 @@
-import { SceneManager } from './SceneManager.js';
-import { StateManager } from './StateManager.js';
-import { InteractionManager } from './InteractionManager.js';
+import { SceneManager } from './managers/SceneManager.js';
+import { StateManager } from './managers/StateManager.js';
+import { InteractionManager } from './managers/InteractionManager.js';
 import './styles.css';
 
 class SketchPopApp {

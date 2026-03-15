@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ExtrusionManager } from './ExtrusionManager.js';
-import { SketchRectangle } from './SketchRectangle.js';
+import { SketchRectangle } from '../geometry/SketchRectangle.js';
 import { SelectionManager } from './SelectionManager.js';
 import { TransformManager } from './TransformManager.js';
 import { StatusBarManager } from './StatusBarManager.js';

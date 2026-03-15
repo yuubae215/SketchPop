@@ -39,13 +39,14 @@ All managers are instantiated in `InteractionManager` (orchestrator), which is c
 - `MeasurementManager`: Distance and face-area measurement annotations in the viewport
 - `ToastManager`: Static class for non-blocking toast notifications (success/info/warning/error)
 
-### Geometry
+### geometry/ — Geometry classes
 - `SketchRectangle`: Rectangle sketch on the ground plane and extrusion into 3D
 - `CustomExtruder`: Manual geometry generation with per-face independent vertices, normals, and colors
 - `Box`: Confirmed solid mesh management
 - `Rectangle`: Base rectangle class
+- `ProceduralEngine`: STEP-like parametric CAD scripting engine
 
-### UI Helpers
+### ui/ — UI Components
 - `ViewCube`: 3D navigation cube for camera orientation (rendered in a separate overlay canvas)
 - `AxisTriad`: X/Y/Z axis indicator
 
@@ -67,9 +68,7 @@ All managers are instantiated in `InteractionManager` (orchestrator), which is c
 
 **Setup and running:**
 ```bash
-# Install dependencies
-npm install
-# or
+# Install dependencies (this project uses pnpm)
 pnpm install
 
 # Start dev server (with hot reload)
@@ -95,7 +94,11 @@ npm run preview  # Preview the built output
 **Code structure:**
 - Entry point: `src/index.js`
 - Config: `vite.config.js` (base: `/SketchPop/`, root: `src`)
-- All source files are ES6 modules under `src/`
+- Managers: `src/managers/` (all `*Manager.js` files)
+- Geometry classes: `src/geometry/` (Box, Rectangle, SketchRectangle, CustomExtruder, ProceduralEngine)
+- UI components: `src/ui/` (ViewCube, AxisTriad)
+- Handlers: `src/handlers/`
+- Utilities: `src/utils/`
 
 **Key classes and methods:**
 - `CustomExtruder.generateVertices()`: Creates 24 independent vertices (6 faces × 4 vertices)

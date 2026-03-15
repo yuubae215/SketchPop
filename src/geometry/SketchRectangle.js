@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { calculateBounds, pointInBounds, calculateDimensions, calculateCenter, generateRectanglePoints, validateRectangleSize } from './utils/geometry.js';
-import { MeshHandler, MaterialHandler, DimensionHandler } from './handlers/threeHandlers.js';
+import { calculateBounds, pointInBounds, calculateDimensions, calculateCenter, generateRectanglePoints, validateRectangleSize } from '../utils/geometry.js';
+import { MeshHandler, MaterialHandler, DimensionHandler } from '../handlers/threeHandlers.js';
 import { Rectangle } from './Rectangle.js';
 import { Box } from './Box.js';
 import { CustomExtruder } from './CustomExtruder.js';

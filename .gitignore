@@ -139,3 +139,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 .claude/settings.local.json
+
+# npm lock file (this project uses pnpm)
+package-lock.json

@@ -1,5 +1,5 @@
-import { generateObjectItemData, generateObjectItemHTML, calculateSelectionChanges, generateObjectId } from './utils/domUtils.js';
-import { ObjectListDOMHandler } from './handlers/domHandlers.js';
+import { generateObjectItemData, generateObjectItemHTML, calculateSelectionChanges, generateObjectId } from '../utils/domUtils.js';
+import { ObjectListDOMHandler } from '../handlers/domHandlers.js';
 
 export class ObjectListManager {
     constructor(stateManager) {

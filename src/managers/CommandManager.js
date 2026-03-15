@@ -10,7 +10,7 @@
  *   FilletCommand       - undo restores the original geometry before fillet/chamfer
  */
 
-import { CommandControlsDOMHandler } from './handlers/domHandlers.js';
+import { CommandControlsDOMHandler } from '../handlers/domHandlers.js';
 
 const MAX_HISTORY = 50;
 
