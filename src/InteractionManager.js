@@ -19,6 +19,7 @@ import { BoxSelectManager } from './BoxSelectManager.js';
 import { EdgeSelectionManager } from './EdgeSelectionManager.js';
 import { FilletManager } from './FilletManager.js';
 import { BooleanManager } from './BooleanManager.js';
+import { ConstructionPlaneManager } from './ConstructionPlaneManager.js';
 
 export class InteractionManager {
     constructor(sceneManager, stateManager) {
@@ -73,6 +74,9 @@ export class InteractionManager {
 
         this.filletManager = new FilletManager(sceneManager, stateManager);
         this.booleanManager = new BooleanManager(sceneManager, stateManager);
+
+        // Advanced CAD sprint
+        this.constructionPlaneManager = new ConstructionPlaneManager(sceneManager, stateManager);
 
         // Track second selected object for boolean ops
         this._secondSelectedObject = null;
@@ -205,6 +209,26 @@ export class InteractionManager {
         // Edge select toggle button
         const edgeBtn = document.getElementById('top-edge-select');
         if (edgeBtn) edgeBtn.addEventListener('click', () => this._toggleEdgeSelect());
+
+        // Construction plane button — toggle or reset
+        const cpBtn = document.getElementById('top-construction-plane');
+        if (cpBtn) {
+            cpBtn.addEventListener('click', () => {
+                if (this.constructionPlaneManager.isActive) {
+                    this.constructionPlaneManager.reset();
+                    cpBtn.classList.remove('active');
+                    this.statusBarManager.updateOperationHint();
+                    ToastManager.show('Construction plane reset', 'info');
+                } else if (this.stateManager.hoveredFace) {
+                    this.constructionPlaneManager.setFromFace(this.stateManager.hoveredFace);
+                    cpBtn.classList.add('active');
+                    this.statusBarManager.setHint('Construction plane active — Esc to reset');
+                    ToastManager.show('Construction plane set', 'info');
+                } else {
+                    ToastManager.show('Hover a face first, then click', 'warning');
+                }
+            });
+        }
 
         // Boolean / fillet dropdown
         const boolBtn  = document.getElementById('top-boolean');
@@ -838,6 +862,14 @@ export class InteractionManager {
                     if (btn) btn.classList.remove('active');
                     break;
                 }
+                if (this.constructionPlaneManager && this.constructionPlaneManager.isActive) {
+                    this.constructionPlaneManager.reset();
+                    this.statusBarManager.updateOperationHint();
+                    ToastManager.show('Construction plane reset', 'info');
+                    const cpBtnEsc = document.getElementById('top-construction-plane');
+                    if (cpBtnEsc) cpBtnEsc.classList.remove('active');
+                    break;
+                }
                 if (this.stateManager.isExtruding || this.stateManager.isFaceExtruding) {
                     this._clearNumericInput();
                     this.cancelExtrusion();
@@ -852,6 +884,34 @@ export class InteractionManager {
             case 'm':
                 if (!event.ctrlKey && !event.metaKey) {
                     this._toggleMeasurement();
+                }
+                break;
+            case ' ':
+                // Space — set construction plane from hovered face
+                event.preventDefault();
+                if (this.stateManager.hoveredFace) {
+                    this.constructionPlaneManager.setFromFace(this.stateManager.hoveredFace);
+                    this.statusBarManager.setHint('Construction plane active — Esc to reset');
+                    ToastManager.show('Construction plane set', 'info');
+                    const cpBtn2 = document.getElementById('top-construction-plane');
+                    if (cpBtn2) cpBtn2.classList.add('active');
+                } else if (this.constructionPlaneManager.isActive) {
+                    this.constructionPlaneManager.reset();
+                    this.statusBarManager.updateOperationHint();
+                    ToastManager.show('Construction plane reset', 'info');
+                    const cpBtn2 = document.getElementById('top-construction-plane');
+                    if (cpBtn2) cpBtn2.classList.remove('active');
+                }
+                break;
+            case 'l':
+                // L — select edge loop (edge-select mode)
+                if (!event.ctrlKey && !event.metaKey &&
+                    this.edgeSelectionManager && this.edgeSelectionManager.enabled) {
+                    const hovered = this.edgeSelectionManager._hoveredEdge;
+                    if (hovered) {
+                        this.edgeSelectionManager.selectLoop(hovered.mesh, hovered.segIndex);
+                        ToastManager.show('Edge loop selected', 'info');
+                    }
                 }
                 break;
         }
@@ -1460,6 +1520,11 @@ export class InteractionManager {
             { id: 'axis-x', label: 'Axis lock: X  (during transform)', shortcut: 'X', action: () => { if(im.transformManager.currentTransformObject) im.transformManager._toggleAxisConstraint('x'); else ToastManager.show('Select an object first', 'warning'); } },
             { id: 'axis-y', label: 'Axis lock: Y  (during transform)', shortcut: 'Y', action: () => { if(im.transformManager.currentTransformObject) im.transformManager._toggleAxisConstraint('y'); else ToastManager.show('Select an object first', 'warning'); } },
             { id: 'axis-z', label: 'Axis lock: Z  (during transform)', shortcut: 'Z', action: () => { if(im.transformManager.currentTransformObject) im.transformManager._toggleAxisConstraint('z'); else ToastManager.show('Select an object first', 'warning'); } },
+
+            // ── Advanced CAD ──
+            { id: 'cplane-set',   label: 'Set construction plane (hover face → Space)', shortcut: 'Space', action: () => { if(sm.hoveredFace) { im.constructionPlaneManager.setFromFace(sm.hoveredFace); im.statusBarManager.setHint('Construction plane active — Esc to reset'); ToastManager.show('Construction plane set', 'info'); const b = document.getElementById('top-construction-plane'); if(b) b.classList.add('active'); } else ToastManager.show('Hover a face first', 'warning'); } },
+            { id: 'cplane-reset', label: 'Reset construction plane',                    shortcut: '',      action: () => { im.constructionPlaneManager.reset(); im.statusBarManager.updateOperationHint(); ToastManager.show('Construction plane reset', 'info'); const b = document.getElementById('top-construction-plane'); if(b) b.classList.remove('active'); } },
+            { id: 'edge-loop',    label: 'Select edge loop (edge-select mode → L)',     shortcut: 'L',     action: () => { const h = im.edgeSelectionManager._hoveredEdge; if(im.edgeSelectionManager.enabled && h) { im.edgeSelectionManager.selectLoop(h.mesh, h.segIndex); ToastManager.show('Edge loop selected', 'info'); } else ToastManager.show('Enable edge select and hover an edge', 'warning'); } },
         ]);
     }
 }

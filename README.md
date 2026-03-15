@@ -40,6 +40,15 @@ SketchPop lets you start with simple 2D rectangle sketches on a ground plane and
 - Apply chamfer (45° cut) or fillet (rounded arc) to top edges
 - Reset to original geometry
 
+### Construction Plane (`Space` key)
+- Hover any face of an extruded object and press `Space` to set a construction plane on that face
+- Subsequent sketches are drawn directly on that face (semi-transparent grid overlay shown)
+- Press `Esc` or click the toolbar button again to reset to the ground plane
+
+### Edge Loop Selection (`L` key)
+- In edge-select mode, hover an edge and press `L` to select the entire edge loop
+- Useful for quickly applying fillet or chamfer to a full ring of edges
+
 ### Measurement Tools (`M` key)
 - Distance mode: click two points to measure
 - Face area mode: click a face to display its area
@@ -124,7 +133,9 @@ npm run preview  # Preview the built output
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` / `Ctrl+Shift+Z` | Redo |
 | `Delete` | Delete selected object |
-| `ESC` | Cancel current operation |
+| `ESC` | Cancel / reset construction plane |
+| `Space` | Set construction plane from hovered face |
+| `L` | Select edge loop (edge-select mode) |
 
 ## Tech Stack
 
@@ -160,6 +171,7 @@ SketchPop/
 │   ├── ExportManager.js            # STL / OBJ / GLTF / GLB / PNG export
 │   ├── ContextMenuManager.js       # Right-click context menu
 │   ├── BooleanManager.js           # CSG boolean operations
+│   ├── ConstructionPlaneManager.js # Construction plane from face (Space key)
 │   ├── BoxSelectManager.js         # Drag-to-select multiple objects
 │   ├── EdgeSelectionManager.js     # Edge hover and selection
 │   ├── FilletManager.js            # Chamfer and fillet operations

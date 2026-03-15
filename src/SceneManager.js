@@ -231,8 +231,13 @@ export class SceneManager {
     getMouseIntersection(event) {
         if (!this.interactionHandler) {
             this.interactionHandler = new InteractionHandler(this.sceneHandler, this.camera);
+            // Apply pending construction plane set before first use
+            if (this._pendingConstructionPlane) {
+                this.interactionHandler.intersectionPlane.copy(this._pendingConstructionPlane);
+                this._pendingConstructionPlane = null;
+            }
         }
-        
+
         this.interactionHandler.updateMousePosition(event, this.renderer.domElement);
         return this.interactionHandler.getIntersectionPoint(this.camera);
     }
