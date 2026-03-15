@@ -690,6 +690,7 @@ export class InteractionManager {
         if (mode === 'sketch' || mode === 'extrude' || mode === 'face-extrude' || isActivelyWorking) {
             event.preventDefault();
             this.sceneManager.setTouchDrawingMode(true);
+            this.sceneManager.controls.enabled = false;
         } else {
             this.sceneManager.setTouchDrawingMode(false);
         }
@@ -745,6 +746,7 @@ export class InteractionManager {
         if (event.changedTouches.length !== 1) return;
 
         this.sceneManager.setTouchDrawingMode(false);
+        this.sceneManager.controls.enabled = true;
 
         if (this._touchMoved) {
             this._touchMoved = false;

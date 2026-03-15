@@ -176,7 +176,7 @@ export class SketchRectangle {
     
     getLineColor() {
         if (this.isPending) return 0xff9500;
-        if (this.isHovered && !this.isExtruded) return 0x00ff00;
+        if (this.isHovered && !this.isExtruded) return 0x00ccff;
         if (this.isExtruded) return 0x666666;
         return 0x007acc;
     }

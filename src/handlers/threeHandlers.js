@@ -29,8 +29,8 @@ class SceneHandler {
     }
 
     setupHelpers() {
-        const gridHelper = new THREE.GridHelper(20, 20, 0x000000, 0x000000);
-        gridHelper.material.opacity = 0.2;
+        const gridHelper = new THREE.GridHelper(20, 20, 0x3a4a6a, 0x2a3450);
+        gridHelper.material.opacity = 0.5;
         gridHelper.material.transparent = true;
         
         const axesHelper = new THREE.AxesHelper(5);

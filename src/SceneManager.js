@@ -61,8 +61,8 @@ export class SceneManager {
         `;
 
         const uniforms = {
-            colorTop: { value: new THREE.Color(0x2a2a35) },    // Dark blue-gray
-            colorBottom: { value: new THREE.Color(0x1a1a1e) }  // Very dark gray
+            colorTop: { value: new THREE.Color(0x252d42) },    // Dark blue-slate
+            colorBottom: { value: new THREE.Color(0x14181f) }  // Very dark navy
         };
 
         const gradientGeometry = new THREE.PlaneGeometry(2, 2);
@@ -147,8 +147,8 @@ export class SceneManager {
         const { gridHelper, axesHelper } = this.sceneHandler.setupHelpers();
         
         const groundPlane = this.sceneHandler.setupGroundPlane();
-        groundPlane.material.color.setHex(0x00ff00);
-        groundPlane.material.opacity = 0.1;
+        groundPlane.material.color.setHex(0x5b7fd4);
+        groundPlane.material.opacity = 0.04;
         groundPlane.material.side = THREE.DoubleSide;
     }
 
