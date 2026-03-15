@@ -80,6 +80,9 @@ export class InteractionManager {
 
         // Track second selected object for boolean ops
         this._secondSelectedObject = null;
+
+        // Orbit mode: when true, touch always rotates/pans the camera (drawing disabled)
+        this.orbitMode = false;
     }
 
     setupEventListeners() {
@@ -163,6 +166,12 @@ export class InteractionManager {
         document.getElementById('home-btn').addEventListener('click', () => {
             this.sceneManager.fitAllObjects();
         });
+
+        // Orbit mode toggle (touch-friendly camera control)
+        const orbitBtn = document.getElementById('top-orbit-mode');
+        if (orbitBtn) {
+            orbitBtn.addEventListener('click', () => this._toggleOrbitMode());
+        }
 
         // Save / Load
         const saveBtn = document.getElementById('top-save');
@@ -682,6 +691,14 @@ export class InteractionManager {
     onTouchStart(event) {
         if (event.touches.length !== 1) return;
 
+        // In orbit mode, hand all single-touch to OrbitControls (camera navigation)
+        if (this.orbitMode) {
+            this.sceneManager.setTouchDrawingMode(false);
+            this.sceneManager.controls.enabled = true;
+            this._touchMoved = false;
+            return;
+        }
+
         const mode = this.stateManager.currentMode;
         const isActivelyWorking = this.stateManager.isDrawing
             || this.stateManager.isExtruding
@@ -705,6 +722,9 @@ export class InteractionManager {
 
     onTouchMove(event) {
         if (event.touches.length !== 1) return;
+
+        // In orbit mode, OrbitControls handles the touch — do nothing here
+        if (this.orbitMode) return;
 
         const touch = event.touches[0];
         const dx = touch.clientX - (this._touchStartPos?.x ?? touch.clientX);
@@ -744,6 +764,14 @@ export class InteractionManager {
 
     onTouchEnd(event) {
         if (event.changedTouches.length !== 1) return;
+
+        // In orbit mode, OrbitControls handles everything — just re-enable and bail
+        if (this.orbitMode) {
+            this.sceneManager.setTouchDrawingMode(false);
+            this.sceneManager.controls.enabled = true;
+            this._touchMoved = false;
+            return;
+        }
 
         this.sceneManager.setTouchDrawingMode(false);
         this.sceneManager.controls.enabled = true;
@@ -1379,6 +1407,18 @@ export class InteractionManager {
         }
 
         ToastManager.show(enabled ? `Grid snap ON (${this.gridSnapManager.gridSize} unit)` : 'Grid snap OFF', 'info');
+    }
+
+    _toggleOrbitMode() {
+        this.orbitMode = !this.orbitMode;
+        const btn = document.getElementById('top-orbit-mode');
+        if (btn) btn.classList.toggle('active', this.orbitMode);
+
+        // Ensure OrbitControls state matches
+        this.sceneManager.setTouchDrawingMode(false);
+        this.sceneManager.controls.enabled = true;
+
+        ToastManager.show(this.orbitMode ? 'Orbit mode ON — touch rotates camera' : 'Orbit mode OFF — touch draws', 'info');
     }
 
     // ── Export ────────────────────────────────────────────────────────────
